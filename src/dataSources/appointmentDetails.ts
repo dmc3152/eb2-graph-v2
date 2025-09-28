@@ -75,7 +75,7 @@ export class AppointmentDetailsDataSource {
         ["TITHING_DECLARATION", {
             code: "TITHING_DECLARATION",
             name: "Tithing Declaration",
-            description: "This option is for members who need to declare their tithing status to the bishop.",
+            description: "This option is for members to declare their tithing status to the bishop.",
             durationInMinutes: 10,
             interviewers: ["BISHOP"],
         }],
