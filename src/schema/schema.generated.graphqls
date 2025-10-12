@@ -65,14 +65,49 @@ enum BishopricMember {
   SECOND_COUNSELOR
 }
 
+input Credentials {
+  email: EmailAddress!
+  password: String!
+}
+
 scalar DateTime
+
+scalar EmailAddress
 
 interface GenericError {
   message: String
 }
 
+type LoginError implements GenericError {
+  code: LoginErrorCodes
+  message: String
+}
+
+enum LoginErrorCodes {
+  INVALID_CREDENTIALS
+  UNKNOWN_ERROR
+  USER_NOT_FOUND
+}
+
+type LoginPayload {
+  error: LoginError
+  success: Boolean!
+  user: User
+}
+
+type LogoutPayload {
+  success: Boolean!
+}
+
 type Mutation {
   createAppointment(input: AppointmentDetails!): AppointmentPayload!
+  login(input: Credentials!): LoginPayload!
+  logout: LogoutPayload!
+  requestPasswordReset(email: EmailAddress!): RequestPasswordResetPayload!
+  resendEmailVerification(email: EmailAddress!): ResendEmailVerificationPayload!
+  resetPassword(input: ResetPasswordDetails!): ResetPasswordPayload!
+  signUp(input: SignUpDetails!): SignUpPayload!
+  verifyEmail(code: Int!, email: EmailAddress!): VerifyEmailPayload!
 }
 
 enum PriorityDirection {
@@ -85,7 +120,100 @@ type Query {
   allAvailabilityBlocks: [AvailabilityBlock!]!
   availabilityBlocks(bishopricMember: BishopricMember!): [AvailabilityBlock!]!
   availableTimeSlots(bishopricMember: BishopricMember!, durationInMinutes: Int!): [TimeSlot]!
-  user(id: ID!): User
+  self: User
+}
+
+type RequestPasswordResetError implements GenericError {
+  code: RequestPasswordResetErrorCodes
+  message: String
+}
+
+enum RequestPasswordResetErrorCodes {
+  COULD_NOT_CREATE
+  COULD_NOT_UPDATE
+  EMAIL_ERROR
+  NOT_FOUND
+  PASSWORD_RESET_AGENT_AUTHENTICATION_FAILED
+  UNKNOWN_ERROR
+}
+
+type RequestPasswordResetPayload {
+  error: RequestPasswordResetError
+  success: Boolean!
+}
+
+type ResendEmailVerificationError implements GenericError {
+  code: ResendEmailVerificationErrorCodes
+  message: String
+}
+
+enum ResendEmailVerificationErrorCodes {
+  COULD_NOT_UPDATE
+  EMAIL_ALREADY_VERIFIED
+  EMAIL_ERROR
+  EMAIL_VERIFIER_AUTHENTICATION_FAILED
+  NOT_FOUND
+  UNKNOWN_ERROR
+}
+
+type ResendEmailVerificationPayload {
+  error: ResendEmailVerificationError
+  success: Boolean!
+}
+
+input ResetPasswordDetails {
+  code: Int!
+  email: EmailAddress!
+  password: String!
+}
+
+type ResetPasswordError implements GenericError {
+  code: ResetPasswordErrorCodes
+  message: String
+}
+
+enum ResetPasswordErrorCodes {
+  CODE_EXPIRED
+  CODE_INVALID
+  DELETE_ERROR
+  NOT_FOUND
+  PASSWORD_RESET_AGENT_AUTHENTICATION_FAILED
+  RESET_ERROR
+  UNKNOWN_ERROR
+}
+
+type ResetPasswordPayload {
+  error: ResetPasswordError
+  success: Boolean!
+}
+
+input SignUpDetails {
+  email: EmailAddress!
+  name: String!
+  password: String!
+}
+
+type SignUpError implements GenericError {
+  code: SignUpErrorCodes
+  message: String
+}
+
+enum SignUpErrorCodes {
+  EMAIL_ERROR
+  EMAIL_VERIFIER_AUTHENTICATION_FAILED
+  INVALID_CREDENTIALS
+  INVALID_PASSWORD_CHARACTER
+  INVALID_PASSWORD_LENGTH
+  MISSING_CAPITAL_LETTER
+  MISSING_LOWERCASE_LETTER
+  MISSING_NUMBER
+  NOT_FOUND
+  UNKNOWN_ERROR
+}
+
+type SignUpPayload {
+  error: SignUpError
+  success: Boolean!
 }
 
 type TimeSlot {
@@ -94,7 +222,25 @@ type TimeSlot {
 }
 
 type User {
-  fullName: String!
+  email: EmailAddress!
   id: ID!
-  isAdmin: Boolean!
+  name: String!
+}
+
+type VerifyEmailError implements GenericError {
+  code: VerifyEmailErrorCodes
+  message: String
+}
+
+enum VerifyEmailErrorCodes {
+  CODE_EXPIRED
+  CODE_INVALID
+  EMAIL_VERIFIER_AUTHENTICATION_FAILED
+  NOT_FOUND
+  UNKNOWN_ERROR
+}
+
+type VerifyEmailPayload {
+  error: VerifyEmailError
+  success: Boolean!
 }

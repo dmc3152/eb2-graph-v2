@@ -5,6 +5,8 @@
             "ESNext",
             "DOM"
         ],
+        "rootDirs": ["src"],
+        "types": ["node"],
         "target": "ESNext",
         "module": "ESNext",
         "moduleDetection": "force",
@@ -23,5 +25,11 @@
         "noUnusedLocals": false,
         "noUnusedParameters": false,
         "noPropertyAccessFromIndexSignature": false
-    }
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
 }

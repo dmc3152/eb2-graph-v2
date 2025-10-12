@@ -1,8 +1,8 @@
 import { calendar_v3 } from "googleapis";
-import { GoogleAuth } from "google-auth-library"
 import { DateTime } from "luxon";
 import { AppointmentDetails, AppointmentPayload, BishopricMember, TimeSlot } from "../schema/types.generated";
 import { AvailabilityBlockMapper } from "../schema/calendarEvent/schema.mappers";
+import { CalendarClient } from "../clients/calendar";
 
 export type AvailabilityBlockTitle = "Bishop" | "Komatsu" | "Naidu";
 export type PotentiallyAvailableTimeSlot = { start: DateTime, end: DateTime } | null;
@@ -20,17 +20,15 @@ export class CalendarDataSource {
     };
 
     constructor(
-        private calendar: calendar_v3.Calendar,
-        private auth: GoogleAuth
+        private calendar: CalendarClient
     ) { }
 
     async getAllAvailabilityBlocks(): Promise<AvailabilityBlockMapper[]> {
         const bishopricMembers = Object.values(this.bishopricMemberMap);
 
         try {
-            const availabilityResponse = await this.calendar.events.list({
+            const availabilityResponse = await this.calendar.getEvents({
                 calendarId: this.availabilityCalendarId,
-                auth: this.auth,
                 timeMin: this.now.toISO(),
                 timeMax: this.availabilityPeriod.toISO(),
                 orderBy: 'startTime',
@@ -56,9 +54,8 @@ export class CalendarDataSource {
 
     async getAvailabilityBlocks(bishopricMember: BishopricMember): Promise<AvailabilityBlockMapper[]> {
         try {
-            const availabilityResponse = await this.calendar.events.list({
+            const availabilityResponse = await this.calendar.getEvents({
                 calendarId: this.availabilityCalendarId,
-                auth: this.auth,
                 timeMin: this.now.toISO(),
                 timeMax: this.availabilityPeriod.toISO(),
                 orderBy: 'startTime',
@@ -84,9 +81,8 @@ export class CalendarDataSource {
 
     async getEventsInTimeRange(bishopricMember: BishopricMember, start: DateTime<true>, end: DateTime<true>) {
         try {
-            const response = await this.calendar.events.list({
+            const response = await this.calendar.getEvents({
                 calendarId: this.mainCalendarId,
-                auth: this.auth,
                 timeMin: start.toISO(),
                 timeMax: end.toISO(),
                 orderBy: 'startTime',
@@ -224,9 +220,8 @@ export class CalendarDataSource {
         }
 
         try {
-            const response = await this.calendar.events.insert({
+            const response = await this.calendar.createEvent({
                 calendarId: this.mainCalendarId,
-                auth: this.auth,
                 requestBody: {
                     summary: `${this.bishopricMemberMap[input.bishopricMember]} - ${input.name} (${input.type})`,
                     description: input.description || '',

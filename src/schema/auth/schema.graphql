@@ -1,0 +1,146 @@
+extend type Mutation {
+  signUp(input: SignUpDetails!): SignUpPayload!
+  login(input: Credentials!): LoginPayload!
+  logout: LogoutPayload!
+  resendEmailVerification(email: EmailAddress!): ResendEmailVerificationPayload!
+  verifyEmail(email: EmailAddress!, code: Int!): VerifyEmailPayload!
+  requestPasswordReset(email: EmailAddress!): RequestPasswordResetPayload!
+  resetPassword(input: ResetPasswordDetails!): ResetPasswordPayload!
+}
+
+input Credentials {
+    email: EmailAddress!
+    password: String!
+}
+
+input SignUpDetails {
+    email: EmailAddress!
+    password: String!
+    name: String!
+}
+
+type SignUpPayload {
+    success: Boolean!
+    error: SignUpError
+}
+
+type SignUpError implements GenericError {
+    code: SignUpErrorCodes
+    message: String
+}
+
+enum SignUpErrorCodes {
+    INVALID_PASSWORD_LENGTH
+    MISSING_CAPITAL_LETTER
+    MISSING_LOWERCASE_LETTER
+    MISSING_NUMBER
+    INVALID_PASSWORD_CHARACTER
+    INVALID_CREDENTIALS
+    EMAIL_VERIFIER_AUTHENTICATION_FAILED
+    NOT_FOUND
+    EMAIL_ERROR
+    UNKNOWN_ERROR
+}
+
+type LoginPayload {
+    user: User
+    success: Boolean!
+    error: LoginError
+}
+
+type LoginError implements GenericError {
+    code: LoginErrorCodes
+    message: String
+}
+
+enum LoginErrorCodes {
+    USER_NOT_FOUND
+    INVALID_CREDENTIALS
+    UNKNOWN_ERROR
+}
+
+type LogoutPayload {
+    success: Boolean!
+}
+
+type ResendEmailVerificationPayload {
+    success: Boolean!
+    error: ResendEmailVerificationError
+}
+
+type ResendEmailVerificationError implements GenericError {
+    code: ResendEmailVerificationErrorCodes
+    message: String
+}
+
+enum ResendEmailVerificationErrorCodes {
+    EMAIL_VERIFIER_AUTHENTICATION_FAILED
+    NOT_FOUND
+    EMAIL_ALREADY_VERIFIED
+    COULD_NOT_UPDATE
+    EMAIL_ERROR
+    UNKNOWN_ERROR
+}
+
+type VerifyEmailPayload {
+    success: Boolean!
+    error: VerifyEmailError
+}
+
+type VerifyEmailError implements GenericError {
+    code: VerifyEmailErrorCodes
+    message: String
+}
+
+enum VerifyEmailErrorCodes {
+    EMAIL_VERIFIER_AUTHENTICATION_FAILED
+    NOT_FOUND
+    CODE_EXPIRED
+    CODE_INVALID
+    UNKNOWN_ERROR
+}
+
+type RequestPasswordResetPayload {
+    success: Boolean!
+    error: RequestPasswordResetError
+}
+
+type RequestPasswordResetError implements GenericError {
+    code: RequestPasswordResetErrorCodes
+    message: String
+}
+
+enum RequestPasswordResetErrorCodes {
+    PASSWORD_RESET_AGENT_AUTHENTICATION_FAILED
+    NOT_FOUND
+    COULD_NOT_UPDATE
+    COULD_NOT_CREATE
+    EMAIL_ERROR
+    UNKNOWN_ERROR
+}
+
+input ResetPasswordDetails {
+    email: EmailAddress!
+    password: String!
+    code: Int!
+}
+
+type ResetPasswordPayload {
+    success: Boolean!
+    error: ResetPasswordError
+}
+
+type ResetPasswordError implements GenericError {
+    code: ResetPasswordErrorCodes
+    message: String
+}
+
+enum ResetPasswordErrorCodes {
+    PASSWORD_RESET_AGENT_AUTHENTICATION_FAILED
+    NOT_FOUND
+    CODE_EXPIRED
+    CODE_INVALID
+    RESET_ERROR
+    DELETE_ERROR
+    UNKNOWN_ERROR
+}

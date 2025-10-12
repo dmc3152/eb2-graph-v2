@@ -1,9 +1,9 @@
 extend type Query {
-  user(id: ID!): User
+  self: User
 }
 
 type User {
   id: ID!
-  fullName: String!
-  isAdmin: Boolean!
+  name: String!
+  email: EmailAddress!
 }
