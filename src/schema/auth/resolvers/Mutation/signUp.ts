@@ -14,7 +14,7 @@ export const signUp: NonNullable<MutationResolvers['signUp']> = async (_parent, 
         }
     }
 
-    if (/[A-Z]/.test(input.password)) {
+    if (!/[A-Z]/.test(input.password)) {
         return {
             success: false,
             error: {
@@ -24,7 +24,7 @@ export const signUp: NonNullable<MutationResolvers['signUp']> = async (_parent, 
         }
     }
 
-    if (/[a-z]/.test(input.password)) {
+    if (!/[a-z]/.test(input.password)) {
         return {
             success: false,
             error: {
@@ -34,7 +34,7 @@ export const signUp: NonNullable<MutationResolvers['signUp']> = async (_parent, 
         }
     }
 
-    if (/\d/.test(input.password)) {
+    if (!/\d/.test(input.password)) {
         return {
             success: false,
             error: {
@@ -72,16 +72,16 @@ export const signUp: NonNullable<MutationResolvers['signUp']> = async (_parent, 
         }
     }
 
-    const [error, emailVerificationDetails] = await safeAsync(dataSources.authentication().getEmailVerificationRecord(emailVerifierToken, { email: input.email }));
+    const [error, emailVerificationDetails] = await safeAsync(dataSources.authentication().createEmailVerificationRecord(emailVerifierToken, { email: input.email }));
     if (error) return {
         success: false,
         error: {
             code: "NOT_FOUND",
-            message: "Could not retrieve email details"
+            message: "Could not retrieve user details"
         }
     }
 
-    const code = emailVerificationDetails.email_verification.secret;
+    const code = emailVerificationDetails.secret;
     const verifyEmailUrl = `${config.uiUrl}/auth/verifyEmail?code=${code}&email=${encodeURIComponent(input.email)}`;
     const [emailError, emailSuccess] = await safeAsync(dataSources.emailer().sendEmail({
         to: input.email,

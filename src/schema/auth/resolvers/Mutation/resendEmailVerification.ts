@@ -13,6 +13,22 @@ export const resendEmailVerification: NonNullable<MutationResolvers['resendEmail
         }
     }
 
+    const [verificationError, isEmailVerified] = await safeAsync(dataSources.authentication().isEmailVerified(emailVerifierToken, { email }));
+    if (verificationError) return {
+        success: false,
+        error: {
+            code: "NOT_FOUND",
+            message: "Could not retrieve email details"
+        }
+    }
+    if (isEmailVerified) return {
+        success: false,
+        error: {
+            code: "EMAIL_ALREADY_VERIFIED",
+            message: "The email address has already been verified"
+        }
+    }
+
     const [error, emailVerificationDetails] = await safeAsync(dataSources.authentication().getEmailVerificationRecord(emailVerifierToken, { email }));
     if (error) return {
         success: false,
@@ -22,21 +38,13 @@ export const resendEmailVerification: NonNullable<MutationResolvers['resendEmail
         }
     }
 
-    if (emailVerificationDetails.email_verification.verified) return {
-        success: false,
-        error: {
-            code: "EMAIL_ALREADY_VERIFIED",
-            message: "The email address has already been verified"
-        }
-    }
-
-    const expiration = DateTime.fromISO(emailVerificationDetails.email_verification.expiration);
+    const expiration = DateTime.fromISO(emailVerificationDetails.expiration);
     const isExpired = DateTime.now() > expiration;
-    let code = emailVerificationDetails.email_verification.secret;
+    let code = emailVerificationDetails.secret;
     let verifyEmailUrl = `${config.uiUrl}/auth/verifyEmail?code=${code}&email=${encodeURIComponent(email)}`;
 
     if (isExpired) {
-        const [updateError, details] = await safeAsync(dataSources.authentication().refreshEmailVerification(emailVerifierToken, { id: emailVerificationDetails.email_verification.id }));
+        const [updateError, details] = await safeAsync(dataSources.authentication().refreshEmailVerification(emailVerifierToken, { id: emailVerificationDetails.id }));
         if (updateError) return {
             success: false,
             error: {

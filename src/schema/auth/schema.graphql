@@ -97,6 +97,7 @@ enum VerifyEmailErrorCodes {
     NOT_FOUND
     CODE_EXPIRED
     CODE_INVALID
+    DELETE_ERROR
     UNKNOWN_ERROR
 }
 

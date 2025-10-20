@@ -12,12 +12,9 @@ export type SignInDto = {
 }
 export type SignUpDto = SignInDto;
 
-export type EmailVerificationQueryDto = {
-    email: string
-    email_verification: {
-        expiration: string
-        id: string
-        secret: number
-        verified: boolean
-    }
+export type EmailVerificationDto = {
+    expiration: string
+    id: string
+    secret: number
+    user: string
 }

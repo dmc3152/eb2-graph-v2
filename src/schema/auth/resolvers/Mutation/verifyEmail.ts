@@ -22,7 +22,7 @@ export const verifyEmail: NonNullable<MutationResolvers['verifyEmail']> = async 
         }
     }
 
-    const expiration = DateTime.fromISO(emailVerificationDetails.email_verification.expiration);
+    const expiration = DateTime.fromISO(emailVerificationDetails.expiration);
     const isExpired = DateTime.now() > expiration;
 
     if (isExpired) return {
@@ -33,7 +33,7 @@ export const verifyEmail: NonNullable<MutationResolvers['verifyEmail']> = async 
         }
     }
 
-    if (code !== emailVerificationDetails.email_verification.secret) return {
+    if (code !== emailVerificationDetails.secret) return {
         success: false,
         error: {
             code: "CODE_INVALID",
@@ -41,12 +41,21 @@ export const verifyEmail: NonNullable<MutationResolvers['verifyEmail']> = async 
         }
     }
 
-    const [updateError, updateSuccess] = await safeAsync(dataSources.authentication().verifyEmail(emailVerifierToken, { id: emailVerificationDetails.email_verification.id }));
+    const [updateError, updateSuccess] = await safeAsync(dataSources.authentication().verifyEmail(emailVerifierToken, { id: emailVerificationDetails.user }));
     if (updateError) return {
         success: false,
         error: {
             code: "UNKNOWN_ERROR",
             message: "Could not set email as verified"
+        }
+    }
+
+    const [deleteError, deleteSuccess] = await safeAsync(dataSources.authentication().deleteEmailVerificationRecord(emailVerifierToken, { id: emailVerificationDetails.id }));
+    if (deleteError) return {
+        success: true,
+        error: {
+            code: "DELETE_ERROR",
+            message: "Could not delete the email verification record"
         }
     }
 

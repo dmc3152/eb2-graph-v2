@@ -3,7 +3,7 @@ import { Config } from "../config";
 import { Credentials, SignUpDetails } from "../schema/types.generated";
 import { SurrealHttpDataSource } from "./surrealHttp";
 import { GraphQLError } from "graphql";
-import { SignInDto, SignUpDto, PasswordResetDto, EmailVerificationQueryDto } from "../dtos/authentication";
+import { SignInDto, SignUpDto, PasswordResetDto, EmailVerificationDto } from "../dtos/authentication";
 
 export class AuthenticationDataSource extends SurrealHttpDataSource {
     constructor(protected config: Config) {
@@ -45,30 +45,64 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
         return false;
     }
 
-    getEmailVerificationRecord = async (token: string, params: { email: string }) => {
-        const response = await this.query<EmailVerificationQueryDto[]>({
+    createEmailVerificationRecord = async (token: string, params: { email: string }) => {
+        const userResponse = await this.query<{ id: string }>({
             query: `
-                SELECT email, email_verification.*
-                FROM User
+                SELECT id FROM ONLY User WHERE email = $email LIMIT 1;
+            `,
+            params,
+            token
+        });
+
+        const response = await this.query<EmailVerificationDto>({
+            query: `
+                CREATE ONLY Email_Verification CONTENT { user: $id }
+            `,
+            params: { id: userResponse.id },
+            token
+        });
+
+        return response;
+    }
+
+    isEmailVerified = async (token: string, params: { email: string }) => {
+        const response = await this.query<{ is_email_verified: boolean }>({
+            query: `
+                SELECT is_email_verified
+                FROM ONLY User
                 WHERE email = $email
                 LIMIT 1;
             `,
             params,
             token
         });
+
+        return response.is_email_verified;
+    }
+
+    getEmailVerificationRecord = async (token: string, params: { email: string }) => {
+        const response = await this.query<EmailVerificationDto>({
+            query: `
+                SELECT *
+                FROM ONLY Email_Verification
+                WHERE user.email = $email
+                LIMIT 1;
+            `,
+            params,
+            token
+        });
         
-        return response[0];
+        return response;
     }
 
     refreshEmailVerification = async (token: string, params: { id: string }) => {
         const newExpiration = DateTime.now().plus({ hours: 1 }).toISO();
         const newSecret = `${this.randomSixDigitNumber()}`;
-        const response = await this.query<EmailVerificationQueryDto["email_verification"]>({
+        const response = await this.query<EmailVerificationDto>({
             query: `
                 UPDATE ONLY $id
                 SET expiration = <datetime> $expiration,
-                secret = $secret,
-                verified = false
+                secret = $secret
             `,
             params: { ...params, expiration: newExpiration, secret: newSecret },
             token
@@ -78,12 +112,25 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     verifyEmail = async (token: string, params: { id: string }) => {
-        const response = await this.query<EmailVerificationQueryDto["email_verification"]>({
+        const response = await this.query<{ is_email_verified: boolean }>({
             query: `
                 UPDATE ONLY $id
-                SET verified = true;
+                SET is_email_verified = true
+                RETURN is_email_verified;
             `,
             params: { ...params },
+            token
+        });
+
+        return response.is_email_verified;
+    }
+
+    deleteEmailVerificationRecord = async (token: string, params: { id: string }) => {
+        const response = await this.query<EmailVerificationDto>({
+            query: `
+                DELETE ONLY $id RETURN BEFORE;
+            `,
+            params,
             token
         });
 
@@ -123,21 +170,19 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     createPasswordResetRecord = async (token: string, params: { email: string }) => {
-        const userResponse = await this.query<{ id: string }[]>({
+        const userResponse = await this.query<{ id: string }>({
             query: `
-                SELECT id FROM User WHERE email = $email LIMIT 1;
+                SELECT id FROM ONLY User WHERE email = $email LIMIT 1;
             `,
             params,
             token
         });
 
-        if (userResponse.length === 0) throw new Error("NOT_FOUND");
-
         const response = await this.query<PasswordResetDto>({
             query: `
                 CREATE ONLY Password_Reset CONTENT { user: $id }
             `,
-            params: { id: userResponse[0].id },
+            params: { id: userResponse.id },
             token
         });
 
@@ -145,16 +190,17 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     resetPassword = async (token: string, params: { id: string, password: string }) => {
-        const response = await this.query<PasswordResetDto>({
+        const response = await this.query<[]>({
             query: `
-                UPDATE ONLY $id
-                SET password = crypto::argon2::generate($password);
+                UPDATE $id
+                SET password = crypto::argon2::generate($password)
+                RETURN NONE;
             `,
             params,
             token
         });
 
-        return response;
+        return Array.isArray(response);
     }
 
     deleteResetPasswordRecord = async (token: string, params: { id: string }) => {

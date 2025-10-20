@@ -317,6 +317,7 @@ export type VerifyEmailError = GenericError & {
 export type VerifyEmailErrorCodes =
   | 'CODE_EXPIRED'
   | 'CODE_INVALID'
+  | 'DELETE_ERROR'
   | 'EMAIL_VERIFIER_AUTHENTICATION_FAILED'
   | 'NOT_FOUND'
   | 'UNKNOWN_ERROR';
@@ -443,7 +444,7 @@ export type ResolversTypes = {
   User: ResolverTypeWrapper<User>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   VerifyEmailError: ResolverTypeWrapper<Omit<VerifyEmailError, 'code'> & { code?: Maybe<ResolversTypes['VerifyEmailErrorCodes']> }>;
-  VerifyEmailErrorCodes: ResolverTypeWrapper<'EMAIL_VERIFIER_AUTHENTICATION_FAILED' | 'NOT_FOUND' | 'CODE_EXPIRED' | 'CODE_INVALID' | 'UNKNOWN_ERROR'>;
+  VerifyEmailErrorCodes: ResolverTypeWrapper<'EMAIL_VERIFIER_AUTHENTICATION_FAILED' | 'NOT_FOUND' | 'CODE_EXPIRED' | 'CODE_INVALID' | 'DELETE_ERROR' | 'UNKNOWN_ERROR'>;
   VerifyEmailPayload: ResolverTypeWrapper<Omit<VerifyEmailPayload, 'error'> & { error?: Maybe<ResolversTypes['VerifyEmailError']> }>;
 };
 
@@ -651,7 +652,7 @@ export type VerifyEmailErrorResolvers<ContextType = any, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type VerifyEmailErrorCodesResolvers = EnumResolverSignature<{ CODE_EXPIRED?: any, CODE_INVALID?: any, EMAIL_VERIFIER_AUTHENTICATION_FAILED?: any, NOT_FOUND?: any, UNKNOWN_ERROR?: any }, ResolversTypes['VerifyEmailErrorCodes']>;
+export type VerifyEmailErrorCodesResolvers = EnumResolverSignature<{ CODE_EXPIRED?: any, CODE_INVALID?: any, DELETE_ERROR?: any, EMAIL_VERIFIER_AUTHENTICATION_FAILED?: any, NOT_FOUND?: any, UNKNOWN_ERROR?: any }, ResolversTypes['VerifyEmailErrorCodes']>;
 
 export type VerifyEmailPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['VerifyEmailPayload'] = ResolversParentTypes['VerifyEmailPayload']> = {
   error?: Resolver<Maybe<ResolversTypes['VerifyEmailError']>, ParentType, ContextType>;

@@ -235,6 +235,7 @@ type VerifyEmailError implements GenericError {
 enum VerifyEmailErrorCodes {
   CODE_EXPIRED
   CODE_INVALID
+  DELETE_ERROR
   EMAIL_VERIFIER_AUTHENTICATION_FAILED
   NOT_FOUND
   UNKNOWN_ERROR
