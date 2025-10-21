@@ -14,7 +14,7 @@ export const verifyEmail: NonNullable<MutationResolvers['verifyEmail']> = async 
     }
 
     const [error, emailVerificationDetails] = await safeAsync(dataSources.authentication().getEmailVerificationRecord(emailVerifierToken, { email }));
-    if (error) return {
+    if (error || !emailVerificationDetails) return {
         success: false,
         error: {
             code: "NOT_FOUND",

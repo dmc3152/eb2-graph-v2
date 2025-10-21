@@ -1,4 +1,5 @@
 import { RequestContext } from '../../../../context';
+import { EmailVerificationDto } from '../../../../dtos/authentication';
 import { safeAsync } from '../../../../utilities/safeAsync';
 import type { MutationResolvers } from './../../../types.generated';
 import { DateTime } from 'luxon';
@@ -29,13 +30,29 @@ export const resendEmailVerification: NonNullable<MutationResolvers['resendEmail
         }
     }
 
-    const [error, emailVerificationDetails] = await safeAsync(dataSources.authentication().getEmailVerificationRecord(emailVerifierToken, { email }));
+    let emailVerificationDetails: EmailVerificationDto;
+    const [error, emailVerificationRecord] = await safeAsync(dataSources.authentication().getEmailVerificationRecord(emailVerifierToken, { email }));
     if (error) return {
         success: false,
         error: {
             code: "NOT_FOUND",
             message: "Could not retrieve email details"
         }
+    }
+
+    if (!emailVerificationRecord) {
+        const [createError, createdEmailDetails] = await safeAsync(dataSources.authentication().createEmailVerificationRecord(emailVerifierToken, { email }));
+        if (createError) return {
+            success: false,
+            error: {
+                code: createError.message === "NOT_FOUND" ? createError.message : "COULD_NOT_CREATE",
+                message: "Could not create email verification record"
+            }
+        }
+        emailVerificationDetails = createdEmailDetails;
+    }
+    else {
+        emailVerificationDetails = emailVerificationRecord;
     }
 
     const expiration = DateTime.fromISO(emailVerificationDetails.expiration);

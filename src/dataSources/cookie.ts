@@ -12,10 +12,10 @@ export class CookieDataSource {
 
     set = async (init: Omit<CookieListItem, "domain" | "httpOnly" | "secure" | "sameSite">, possibleValue?: string) => {
         return this.request.cookieStore?.set({
-            domain: this.config.cookieDomain,
+            domain: this.config.cookie.domain,
             httpOnly: true,
             secure: true,
-            sameSite: 'none',
+            sameSite: this.config.cookie.samesite,
             ...init
         }, possibleValue);
     }

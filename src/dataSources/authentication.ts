@@ -48,12 +48,12 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     createEmailVerificationRecord = async (token: string, params: { email: string }) => {
         const userResponse = await this.query<{ id: string }>({
             query: `
-                SELECT id FROM ONLY User WHERE email = $email LIMIT 1;
+                SELECT id FROM ONLY User WHERE email = string::lowercase($email) LIMIT 1;
             `,
             params,
             token
         });
-
+        
         const response = await this.query<EmailVerificationDto>({
             query: `
                 CREATE ONLY Email_Verification CONTENT { user: $id }
@@ -61,7 +61,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
             params: { id: userResponse.id },
             token
         });
-
+        
         return response;
     }
 
@@ -70,7 +70,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
             query: `
                 SELECT is_email_verified
                 FROM ONLY User
-                WHERE email = $email
+                WHERE email = string::lowercase($email)
                 LIMIT 1;
             `,
             params,
@@ -81,11 +81,11 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     getEmailVerificationRecord = async (token: string, params: { email: string }) => {
-        const response = await this.query<EmailVerificationDto>({
+        const response = await this.query<EmailVerificationDto | null>({
             query: `
                 SELECT *
                 FROM ONLY Email_Verification
-                WHERE user.email = $email
+                WHERE user.email = string::lowercase($email)
                 LIMIT 1;
             `,
             params,
@@ -141,7 +141,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
         const response = await this.query<PasswordResetDto[]>({
             query: `
                 SELECT * FROM Password_Reset
-                WHERE user.email = $email
+                WHERE user.email = string::lowercase($email)
             `,
             params,
             token
@@ -172,7 +172,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     createPasswordResetRecord = async (token: string, params: { email: string }) => {
         const userResponse = await this.query<{ id: string }>({
             query: `
-                SELECT id FROM ONLY User WHERE email = $email LIMIT 1;
+                SELECT id FROM ONLY User WHERE email = string::lowercase($email) LIMIT 1;
             `,
             params,
             token

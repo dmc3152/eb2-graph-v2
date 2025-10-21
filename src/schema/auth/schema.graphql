@@ -78,6 +78,7 @@ enum ResendEmailVerificationErrorCodes {
     NOT_FOUND
     EMAIL_ALREADY_VERIFIED
     COULD_NOT_UPDATE
+    COULD_NOT_CREATE
     EMAIL_ERROR
     UNKNOWN_ERROR
 }

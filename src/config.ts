@@ -4,7 +4,10 @@ export class Config {
         namespace: string,
         database: string
     }
-    cookieDomain: string
+    cookie: {
+        domain: string,
+        samesite: CookieSameSite
+    }
     redisUrl: string
     email: {
         host: string
@@ -23,7 +26,10 @@ export class Config {
             namespace: this._load("SURREAL_DB_NAMESPACE"),
             database: this._load("SURREAL_DB_DATABASE")
         }
-        this.cookieDomain = this._loadOptional("COOKIE_DOMAIN") || "eb2ward.com"
+        this.cookie = {
+            domain: this._loadOptional("COOKIE_DOMAIN") || "eb2ward.com",
+            samesite: this._loadOptional("COOKIE_SAMESITE") as CookieSameSite || "strict"
+        }
         this.redisUrl = this._loadOptional("REDIS_URL") || "redis://localhost:6379"
         this.email = {
             host: this._load("EMAIL_HOST"),

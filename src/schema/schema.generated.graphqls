@@ -148,6 +148,7 @@ type ResendEmailVerificationError implements GenericError {
 }
 
 enum ResendEmailVerificationErrorCodes {
+  COULD_NOT_CREATE
   COULD_NOT_UPDATE
   EMAIL_ALREADY_VERIFIED
   EMAIL_ERROR

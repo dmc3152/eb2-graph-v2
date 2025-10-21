@@ -225,6 +225,7 @@ export type ResendEmailVerificationError = GenericError & {
 };
 
 export type ResendEmailVerificationErrorCodes =
+  | 'COULD_NOT_CREATE'
   | 'COULD_NOT_UPDATE'
   | 'EMAIL_ALREADY_VERIFIED'
   | 'EMAIL_ERROR'
@@ -430,7 +431,7 @@ export type ResolversTypes = {
   RequestPasswordResetErrorCodes: ResolverTypeWrapper<'PASSWORD_RESET_AGENT_AUTHENTICATION_FAILED' | 'NOT_FOUND' | 'COULD_NOT_UPDATE' | 'COULD_NOT_CREATE' | 'EMAIL_ERROR' | 'UNKNOWN_ERROR'>;
   RequestPasswordResetPayload: ResolverTypeWrapper<Omit<RequestPasswordResetPayload, 'error'> & { error?: Maybe<ResolversTypes['RequestPasswordResetError']> }>;
   ResendEmailVerificationError: ResolverTypeWrapper<Omit<ResendEmailVerificationError, 'code'> & { code?: Maybe<ResolversTypes['ResendEmailVerificationErrorCodes']> }>;
-  ResendEmailVerificationErrorCodes: ResolverTypeWrapper<'EMAIL_VERIFIER_AUTHENTICATION_FAILED' | 'NOT_FOUND' | 'EMAIL_ALREADY_VERIFIED' | 'COULD_NOT_UPDATE' | 'EMAIL_ERROR' | 'UNKNOWN_ERROR'>;
+  ResendEmailVerificationErrorCodes: ResolverTypeWrapper<'EMAIL_VERIFIER_AUTHENTICATION_FAILED' | 'NOT_FOUND' | 'EMAIL_ALREADY_VERIFIED' | 'COULD_NOT_UPDATE' | 'COULD_NOT_CREATE' | 'EMAIL_ERROR' | 'UNKNOWN_ERROR'>;
   ResendEmailVerificationPayload: ResolverTypeWrapper<Omit<ResendEmailVerificationPayload, 'error'> & { error?: Maybe<ResolversTypes['ResendEmailVerificationError']> }>;
   ResetPasswordDetails: ResetPasswordDetails;
   ResetPasswordError: ResolverTypeWrapper<Omit<ResetPasswordError, 'code'> & { code?: Maybe<ResolversTypes['ResetPasswordErrorCodes']> }>;
@@ -597,7 +598,7 @@ export type ResendEmailVerificationErrorResolvers<ContextType = any, ParentType 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ResendEmailVerificationErrorCodesResolvers = EnumResolverSignature<{ COULD_NOT_UPDATE?: any, EMAIL_ALREADY_VERIFIED?: any, EMAIL_ERROR?: any, EMAIL_VERIFIER_AUTHENTICATION_FAILED?: any, NOT_FOUND?: any, UNKNOWN_ERROR?: any }, ResolversTypes['ResendEmailVerificationErrorCodes']>;
+export type ResendEmailVerificationErrorCodesResolvers = EnumResolverSignature<{ COULD_NOT_CREATE?: any, COULD_NOT_UPDATE?: any, EMAIL_ALREADY_VERIFIED?: any, EMAIL_ERROR?: any, EMAIL_VERIFIER_AUTHENTICATION_FAILED?: any, NOT_FOUND?: any, UNKNOWN_ERROR?: any }, ResolversTypes['ResendEmailVerificationErrorCodes']>;
 
 export type ResendEmailVerificationPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['ResendEmailVerificationPayload'] = ResolversParentTypes['ResendEmailVerificationPayload']> = {
   error?: Resolver<Maybe<ResolversTypes['ResendEmailVerificationError']>, ParentType, ContextType>;
