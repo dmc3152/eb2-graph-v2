@@ -2,6 +2,7 @@ import { RequestContext } from '../../../../context';
 import type { MutationResolvers } from './../../../types.generated';
 import { safeAsync } from '../../../../utilities/safeAsync';
 import { randomUUID } from 'crypto';
+import { DateTime } from 'luxon';
 
 export const login: NonNullable<MutationResolvers['login']> = async (_parent, { input }, { dataSources }: RequestContext) => {
     const [credentialsError, token] = await safeAsync(dataSources.authentication().login(input));
@@ -26,10 +27,11 @@ export const login: NonNullable<MutationResolvers['login']> = async (_parent, { 
     const userSessionId = `${user.id}-${sessionId}`;
     await dataSources.surrealTokenStore().setUserToken(userSessionId, token);
 
+    const expirationDate = DateTime.now().plus({ days: 90 }).minus({ hours: 1 }).toJSDate();
     await dataSources.cookie().set({
         name: 'eb2ward-authenticated-user',
         value: userSessionId,
-        expires: null,
+        expires: expirationDate,
     });
 
     return {
