@@ -7,7 +7,7 @@ export class AppointmentDetailsDataSource extends SurrealHttpDataSource {
         super(config);
     }
 
-    async getAllAppointmentTypes(token: string) {
+    async getAllAppointmentTypes() {
         const response = await this.query<AppointmentTypeDto[]>({
             query: `
                 SELECT * FROM appointment_type
