@@ -21,25 +21,12 @@ export type Scalars = {
   EmailAddress: { input: string; output: string; }
 };
 
-export type AppointmentCode =
-  | 'BAPTISM'
-  | 'ECCLESIASTICAL_ENDORSEMENT'
-  | 'MISSION'
-  | 'OTHER'
-  | 'PATRIARCHAL_BLESSING'
-  | 'PERSONAL_MATTER_LONG'
-  | 'PERSONAL_MATTER_SHORT'
-  | 'TEMPLE_RECOMMEND'
-  | 'TEMPLE_RECOMMEND_RENEWAL'
-  | 'TEMPLE_WORKER'
-  | 'TITHING_DECLARATION';
-
 export type AppointmentDetails = {
-  bishopricMember: BishopricMember;
+  bishopricMember: Scalars['ID']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
   name: Scalars['String']['input'];
   timeSlot: AppointmentTimeSlot;
-  type: AppointmentCode;
 };
 
 export type AppointmentError = GenericError & {
@@ -50,12 +37,13 @@ export type AppointmentError = GenericError & {
 
 export type AppointmentErrorCodes =
   | 'APPOINTMENT_CONFLICT'
+  | 'APPOINTMENT_TYPE_NOT_FOUND'
   | 'INVALID_TIME_SLOT'
   | 'UNKNOWN_ERROR';
 
 export type AppointmentPayload = {
   __typename?: 'AppointmentPayload';
-  bishopricMember?: Maybe<BishopricMember>;
+  bishopricMember?: Maybe<Scalars['ID']['output']>;
   error?: Maybe<AppointmentError>;
   success: Scalars['Boolean']['output'];
   timeSlot?: Maybe<TimeSlot>;
@@ -68,17 +56,17 @@ export type AppointmentTimeSlot = {
 
 export type AppointmentType = {
   __typename?: 'AppointmentType';
-  code: AppointmentCode;
   description?: Maybe<Scalars['String']['output']>;
   durationInMinutes: Scalars['Int']['output'];
-  interviewers: Array<BishopricMember>;
+  id: Scalars['ID']['output'];
+  interviewers: Array<Scalars['ID']['output']>;
   name: Scalars['String']['output'];
 };
 
 export type AvailabilityBlock = {
   __typename?: 'AvailabilityBlock';
   availableSlot?: Maybe<TimeSlot>;
-  bishopricMember?: Maybe<BishopricMember>;
+  bishopricMember?: Maybe<Scalars['ID']['output']>;
   end?: Maybe<Scalars['DateTime']['output']>;
   priorityDirection?: Maybe<PriorityDirection>;
   start?: Maybe<Scalars['DateTime']['output']>;
@@ -88,11 +76,6 @@ export type AvailabilityBlock = {
 export type AvailabilityBlockavailableSlotArgs = {
   durationInMinutes: Scalars['Int']['input'];
 };
-
-export type BishopricMember =
-  | 'BISHOP'
-  | 'FIRST_COUNSELOR'
-  | 'SECOND_COUNSELOR';
 
 export type Credentials = {
   email: Scalars['EmailAddress']['input'];
@@ -189,12 +172,12 @@ export type Query = {
 
 
 export type QueryavailabilityBlocksArgs = {
-  bishopricMember: BishopricMember;
+  bishopricMember: Scalars['ID']['input'];
 };
 
 
 export type QueryavailableTimeSlotsArgs = {
-  bishopricMember: BishopricMember;
+  bishopricMember: Scalars['ID']['input'];
   durationInMinutes: Scalars['Int']['input'];
 };
 
@@ -404,18 +387,17 @@ export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = 
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
-  AppointmentCode: ResolverTypeWrapper<'BAPTISM' | 'ECCLESIASTICAL_ENDORSEMENT' | 'MISSION' | 'OTHER' | 'PATRIARCHAL_BLESSING' | 'PERSONAL_MATTER_LONG' | 'PERSONAL_MATTER_SHORT' | 'TEMPLE_RECOMMEND' | 'TEMPLE_RECOMMEND_RENEWAL' | 'TEMPLE_WORKER' | 'TITHING_DECLARATION'>;
   AppointmentDetails: AppointmentDetails;
+  ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   AppointmentError: ResolverTypeWrapper<Omit<AppointmentError, 'code'> & { code?: Maybe<ResolversTypes['AppointmentErrorCodes']> }>;
-  AppointmentErrorCodes: ResolverTypeWrapper<'APPOINTMENT_CONFLICT' | 'INVALID_TIME_SLOT' | 'UNKNOWN_ERROR'>;
-  AppointmentPayload: ResolverTypeWrapper<Omit<AppointmentPayload, 'bishopricMember' | 'error'> & { bishopricMember?: Maybe<ResolversTypes['BishopricMember']>, error?: Maybe<ResolversTypes['AppointmentError']> }>;
+  AppointmentErrorCodes: ResolverTypeWrapper<'APPOINTMENT_TYPE_NOT_FOUND' | 'APPOINTMENT_CONFLICT' | 'INVALID_TIME_SLOT' | 'UNKNOWN_ERROR'>;
+  AppointmentPayload: ResolverTypeWrapper<Omit<AppointmentPayload, 'error'> & { error?: Maybe<ResolversTypes['AppointmentError']> }>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   AppointmentTimeSlot: AppointmentTimeSlot;
-  AppointmentType: ResolverTypeWrapper<Omit<AppointmentType, 'code' | 'interviewers'> & { code: ResolversTypes['AppointmentCode'], interviewers: Array<ResolversTypes['BishopricMember']> }>;
+  AppointmentType: ResolverTypeWrapper<AppointmentType>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   AvailabilityBlock: ResolverTypeWrapper<AvailabilityBlockMapper>;
-  BishopricMember: ResolverTypeWrapper<'BISHOP' | 'FIRST_COUNSELOR' | 'SECOND_COUNSELOR'>;
   Credentials: Credentials;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   EmailAddress: ResolverTypeWrapper<Scalars['EmailAddress']['output']>;
@@ -443,7 +425,6 @@ export type ResolversTypes = {
   SignUpPayload: ResolverTypeWrapper<Omit<SignUpPayload, 'error'> & { error?: Maybe<ResolversTypes['SignUpError']> }>;
   TimeSlot: ResolverTypeWrapper<TimeSlot>;
   User: ResolverTypeWrapper<User>;
-  ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   VerifyEmailError: ResolverTypeWrapper<Omit<VerifyEmailError, 'code'> & { code?: Maybe<ResolversTypes['VerifyEmailErrorCodes']> }>;
   VerifyEmailErrorCodes: ResolverTypeWrapper<'EMAIL_VERIFIER_AUTHENTICATION_FAILED' | 'NOT_FOUND' | 'CODE_EXPIRED' | 'CODE_INVALID' | 'DELETE_ERROR' | 'UNKNOWN_ERROR'>;
   VerifyEmailPayload: ResolverTypeWrapper<Omit<VerifyEmailPayload, 'error'> & { error?: Maybe<ResolversTypes['VerifyEmailError']> }>;
@@ -452,6 +433,7 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   AppointmentDetails: AppointmentDetails;
+  ID: Scalars['ID']['output'];
   String: Scalars['String']['output'];
   AppointmentError: AppointmentError;
   AppointmentPayload: Omit<AppointmentPayload, 'error'> & { error?: Maybe<ResolversParentTypes['AppointmentError']> };
@@ -481,12 +463,9 @@ export type ResolversParentTypes = {
   SignUpPayload: Omit<SignUpPayload, 'error'> & { error?: Maybe<ResolversParentTypes['SignUpError']> };
   TimeSlot: TimeSlot;
   User: User;
-  ID: Scalars['ID']['output'];
   VerifyEmailError: VerifyEmailError;
   VerifyEmailPayload: Omit<VerifyEmailPayload, 'error'> & { error?: Maybe<ResolversParentTypes['VerifyEmailError']> };
 };
-
-export type AppointmentCodeResolvers = EnumResolverSignature<{ BAPTISM?: any, ECCLESIASTICAL_ENDORSEMENT?: any, MISSION?: any, OTHER?: any, PATRIARCHAL_BLESSING?: any, PERSONAL_MATTER_LONG?: any, PERSONAL_MATTER_SHORT?: any, TEMPLE_RECOMMEND?: any, TEMPLE_RECOMMEND_RENEWAL?: any, TEMPLE_WORKER?: any, TITHING_DECLARATION?: any }, ResolversTypes['AppointmentCode']>;
 
 export type AppointmentErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['AppointmentError'] = ResolversParentTypes['AppointmentError']> = {
   code?: Resolver<Maybe<ResolversTypes['AppointmentErrorCodes']>, ParentType, ContextType>;
@@ -494,10 +473,10 @@ export type AppointmentErrorResolvers<ContextType = any, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type AppointmentErrorCodesResolvers = EnumResolverSignature<{ APPOINTMENT_CONFLICT?: any, INVALID_TIME_SLOT?: any, UNKNOWN_ERROR?: any }, ResolversTypes['AppointmentErrorCodes']>;
+export type AppointmentErrorCodesResolvers = EnumResolverSignature<{ APPOINTMENT_CONFLICT?: any, APPOINTMENT_TYPE_NOT_FOUND?: any, INVALID_TIME_SLOT?: any, UNKNOWN_ERROR?: any }, ResolversTypes['AppointmentErrorCodes']>;
 
 export type AppointmentPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['AppointmentPayload'] = ResolversParentTypes['AppointmentPayload']> = {
-  bishopricMember?: Resolver<Maybe<ResolversTypes['BishopricMember']>, ParentType, ContextType>;
+  bishopricMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   error?: Resolver<Maybe<ResolversTypes['AppointmentError']>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   timeSlot?: Resolver<Maybe<ResolversTypes['TimeSlot']>, ParentType, ContextType>;
@@ -505,24 +484,22 @@ export type AppointmentPayloadResolvers<ContextType = any, ParentType extends Re
 };
 
 export type AppointmentTypeResolvers<ContextType = any, ParentType extends ResolversParentTypes['AppointmentType'] = ResolversParentTypes['AppointmentType']> = {
-  code?: Resolver<ResolversTypes['AppointmentCode'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   durationInMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  interviewers?: Resolver<Array<ResolversTypes['BishopricMember']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  interviewers?: Resolver<Array<ResolversTypes['ID']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type AvailabilityBlockResolvers<ContextType = any, ParentType extends ResolversParentTypes['AvailabilityBlock'] = ResolversParentTypes['AvailabilityBlock']> = {
   availableSlot?: Resolver<Maybe<ResolversTypes['TimeSlot']>, ParentType, ContextType, RequireFields<AvailabilityBlockavailableSlotArgs, 'durationInMinutes'>>;
-  bishopricMember?: Resolver<Maybe<ResolversTypes['BishopricMember']>, ParentType, ContextType>;
+  bishopricMember?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   end?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   priorityDirection?: Resolver<Maybe<ResolversTypes['PriorityDirection']>, ParentType, ContextType>;
   start?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
-
-export type BishopricMemberResolvers = EnumResolverSignature<{ BISHOP?: any, FIRST_COUNSELOR?: any, SECOND_COUNSELOR?: any }, ResolversTypes['BishopricMember']>;
 
 export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
   name: 'DateTime';
@@ -662,13 +639,11 @@ export type VerifyEmailPayloadResolvers<ContextType = any, ParentType extends Re
 };
 
 export type Resolvers<ContextType = any> = {
-  AppointmentCode?: AppointmentCodeResolvers;
   AppointmentError?: AppointmentErrorResolvers<ContextType>;
   AppointmentErrorCodes?: AppointmentErrorCodesResolvers;
   AppointmentPayload?: AppointmentPayloadResolvers<ContextType>;
   AppointmentType?: AppointmentTypeResolvers<ContextType>;
   AvailabilityBlock?: AvailabilityBlockResolvers<ContextType>;
-  BishopricMember?: BishopricMemberResolvers;
   DateTime?: GraphQLScalarType;
   EmailAddress?: GraphQLScalarType;
   GenericError?: GenericErrorResolvers<ContextType>;

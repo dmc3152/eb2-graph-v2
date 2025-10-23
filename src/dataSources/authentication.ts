@@ -138,15 +138,16 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     getPasswordResetRecord = async (token: string, params: { email: string }) => {
-        const response = await this.query<PasswordResetDto[]>({
+        const response = await this.query<PasswordResetDto>({
             query: `
-                SELECT * FROM password_reset
+                SELECT * FROM ONLY password_reset
                 WHERE user.email = string::lowercase($email)
+                LIMIT 1;
             `,
             params,
             token
         });
-        return response[0];
+        return response;
     }
 
     private randomSixDigitNumber(): number {

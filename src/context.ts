@@ -59,7 +59,7 @@ export const buildContext = (
     clients: Clients
 ) => async ({ request, params }: YogaInitialContext): Promise<RequestContext> => {
     const dataSources: RequestContext['dataSources'] = {
-        appointmentDetails: lazyLoad(AppointmentDetailsDataSource),
+        appointmentDetails: lazyLoad(AppointmentDetailsDataSource, config),
         authentication: lazyLoad(AuthenticationDataSource, config),
         calendar: lazyLoad(CalendarDataSource, clients.calendar),
         cookie: lazyLoad(CookieDataSource, request, config),

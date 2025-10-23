@@ -1,7 +1,7 @@
 type AvailabilityBlock {
     start: DateTime
     end: DateTime
-    bishopricMember: BishopricMember
+    bishopricMember: ID
     priorityDirection: PriorityDirection
     availableSlot(durationInMinutes: Int!): TimeSlot
 }
@@ -11,12 +11,6 @@ type TimeSlot {
     end: DateTime
 }
 
-enum BishopricMember {
-    BISHOP
-    FIRST_COUNSELOR
-    SECOND_COUNSELOR
-}
-
 enum PriorityDirection {
     ASC
     DESC
@@ -24,7 +18,7 @@ enum PriorityDirection {
 
 type AppointmentPayload {
     timeSlot: TimeSlot
-    bishopricMember: BishopricMember
+    bishopricMember: ID
     success: Boolean!
     error: AppointmentError
 }
@@ -39,16 +33,17 @@ type AppointmentError implements GenericError {
 }
 
 enum AppointmentErrorCodes {
+    APPOINTMENT_TYPE_NOT_FOUND
     APPOINTMENT_CONFLICT
     INVALID_TIME_SLOT
     UNKNOWN_ERROR
 }
 
 input AppointmentDetails {
+    id: ID!
     timeSlot: AppointmentTimeSlot!
-    bishopricMember: BishopricMember!
+    bishopricMember: ID!
     name: String!
-    type: AppointmentCode!
     description: String
 }
 
@@ -58,32 +53,18 @@ input AppointmentTimeSlot {
 }
 
 type AppointmentType {
-    code: AppointmentCode!
+    id: ID!
     name: String!
     description: String
     durationInMinutes: Int!
-    interviewers: [BishopricMember!]!
-}
-
-enum AppointmentCode {
-    BAPTISM
-    ECCLESIASTICAL_ENDORSEMENT
-    MISSION
-    OTHER
-    PATRIARCHAL_BLESSING
-    PERSONAL_MATTER_LONG
-    PERSONAL_MATTER_SHORT
-    TEMPLE_RECOMMEND
-    TEMPLE_RECOMMEND_RENEWAL
-    TEMPLE_WORKER
-    TITHING_DECLARATION
+    interviewers: [ID!]!
 }
 
 extend type Query {
     allAvailabilityBlocks: [AvailabilityBlock!]!
     allAppointmentTypes: [AppointmentType!]!
-    availabilityBlocks(bishopricMember: BishopricMember!): [AvailabilityBlock!]!
-    availableTimeSlots(bishopricMember: BishopricMember!, durationInMinutes: Int!): [TimeSlot]!
+    availabilityBlocks(bishopricMember: ID!): [AvailabilityBlock!]!
+    availableTimeSlots(bishopricMember: ID!, durationInMinutes: Int!): [TimeSlot]!
 }
 
 extend type Mutation {

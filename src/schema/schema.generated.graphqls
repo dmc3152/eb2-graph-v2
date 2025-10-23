@@ -1,23 +1,9 @@
-enum AppointmentCode {
-  BAPTISM
-  ECCLESIASTICAL_ENDORSEMENT
-  MISSION
-  OTHER
-  PATRIARCHAL_BLESSING
-  PERSONAL_MATTER_LONG
-  PERSONAL_MATTER_SHORT
-  TEMPLE_RECOMMEND
-  TEMPLE_RECOMMEND_RENEWAL
-  TEMPLE_WORKER
-  TITHING_DECLARATION
-}
-
 input AppointmentDetails {
-  bishopricMember: BishopricMember!
+  bishopricMember: ID!
   description: String
+  id: ID!
   name: String!
   timeSlot: AppointmentTimeSlot!
-  type: AppointmentCode!
 }
 
 type AppointmentError implements GenericError {
@@ -27,12 +13,13 @@ type AppointmentError implements GenericError {
 
 enum AppointmentErrorCodes {
   APPOINTMENT_CONFLICT
+  APPOINTMENT_TYPE_NOT_FOUND
   INVALID_TIME_SLOT
   UNKNOWN_ERROR
 }
 
 type AppointmentPayload {
-  bishopricMember: BishopricMember
+  bishopricMember: ID
   error: AppointmentError
   success: Boolean!
   timeSlot: TimeSlot
@@ -44,25 +31,19 @@ input AppointmentTimeSlot {
 }
 
 type AppointmentType {
-  code: AppointmentCode!
   description: String
   durationInMinutes: Int!
-  interviewers: [BishopricMember!]!
+  id: ID!
+  interviewers: [ID!]!
   name: String!
 }
 
 type AvailabilityBlock {
   availableSlot(durationInMinutes: Int!): TimeSlot
-  bishopricMember: BishopricMember
+  bishopricMember: ID
   end: DateTime
   priorityDirection: PriorityDirection
   start: DateTime
-}
-
-enum BishopricMember {
-  BISHOP
-  FIRST_COUNSELOR
-  SECOND_COUNSELOR
 }
 
 input Credentials {
@@ -118,8 +99,8 @@ enum PriorityDirection {
 type Query {
   allAppointmentTypes: [AppointmentType!]!
   allAvailabilityBlocks: [AvailabilityBlock!]!
-  availabilityBlocks(bishopricMember: BishopricMember!): [AvailabilityBlock!]!
-  availableTimeSlots(bishopricMember: BishopricMember!, durationInMinutes: Int!): [TimeSlot]!
+  availabilityBlocks(bishopricMember: ID!): [AvailabilityBlock!]!
+  availableTimeSlots(bishopricMember: ID!, durationInMinutes: Int!): [TimeSlot]!
   self: User
 }
 

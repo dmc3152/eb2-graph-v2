@@ -1,6 +1,6 @@
 import { calendar_v3 } from "googleapis";
 import { DateTime } from "luxon";
-import { AppointmentDetails, AppointmentPayload, BishopricMember, TimeSlot } from "../schema/types.generated";
+import { AppointmentDetails, AppointmentPayload, TimeSlot } from "../schema/types.generated";
 import { AvailabilityBlockMapper } from "../schema/calendarEvent/schema.mappers";
 import { CalendarClient } from "../clients/calendar";
 
@@ -13,10 +13,10 @@ export class CalendarDataSource {
     private readonly mainCalendarId = '4b68e59284f8946ded045174edfdb457c7c71624573deb307ba24192852c68aa@group.calendar.google.com';
     private readonly now = DateTime.now();
     private readonly availabilityPeriod = this.now.plus({ days: 21 });
-    private readonly bishopricMemberMap: Record<BishopricMember, AvailabilityBlockTitle> = {
-        BISHOP: "Bishop",
-        FIRST_COUNSELOR: "Naidu",
-        SECOND_COUNSELOR: "Komatsu"
+    private readonly bishopricMemberMap: Record<string, AvailabilityBlockTitle> = {
+        ['calling:bishop']: "Bishop",
+        ['calling:bishopric_first_counselor']: "Naidu",
+        ['calling:bishopric_second_counselor']: "Komatsu"
     };
 
     constructor(
@@ -40,7 +40,7 @@ export class CalendarDataSource {
                 blocks.push({
                     start: event.start?.dateTime || null,
                     end: event.end?.dateTime || null,
-                    bishopricMember: Object.entries(this.bishopricMemberMap).find(([_, title]) => event.summary?.toLowerCase().startsWith(title.toLowerCase()))?.[0] as BishopricMember,
+                    bishopricMember: Object.entries(this.bishopricMemberMap).find(([_, title]) => event.summary?.toLowerCase().startsWith(title.toLowerCase()))?.[0],
                     priorityDirection: event.description?.toLowerCase().includes("end") ? "DESC" : "ASC"
                 });
                 return blocks;
@@ -52,7 +52,7 @@ export class CalendarDataSource {
         }
     }
 
-    async getAvailabilityBlocks(bishopricMember: BishopricMember): Promise<AvailabilityBlockMapper[]> {
+    async getAvailabilityBlocks(bishopricMember: string): Promise<AvailabilityBlockMapper[]> {
         try {
             const availabilityResponse = await this.calendar.getEvents({
                 calendarId: this.availabilityCalendarId,
@@ -79,7 +79,7 @@ export class CalendarDataSource {
         }
     }
 
-    async getEventsInTimeRange(bishopricMember: BishopricMember, start: DateTime<true>, end: DateTime<true>) {
+    async getEventsInTimeRange(bishopricMember: string, start: DateTime<true>, end: DateTime<true>) {
         try {
             const response = await this.calendar.getEvents({
                 calendarId: this.mainCalendarId,
@@ -97,7 +97,7 @@ export class CalendarDataSource {
         }
     }
 
-    async getAvailableTimeSlotForBlock(bishopricMember: BishopricMember, durationInMinutes: number, startTime: DateTime<true>, endTime: DateTime<true>, priorityDirection: "ASC" | "DESC"): Promise<(TimeSlot | null)> {
+    async getAvailableTimeSlotForBlock(bishopricMember: string, durationInMinutes: number, startTime: DateTime<true>, endTime: DateTime<true>, priorityDirection: "ASC" | "DESC"): Promise<(TimeSlot | null)> {
         const blockEvents = await this.getEventsInTimeRange(bishopricMember, startTime, endTime);
 
         const startingSlot = priorityDirection === "ASC"
@@ -153,7 +153,7 @@ export class CalendarDataSource {
         } : null;
     }
 
-    async getAvailableTimeSlots(bishopricMember: BishopricMember, durationInMinutes: number): Promise<(TimeSlot | null)[]> {
+    async getAvailableTimeSlots(bishopricMember: string, durationInMinutes: number): Promise<(TimeSlot | null)[]> {
         const blocks = await this.getAvailabilityBlocks(bishopricMember);
 
         const availableSlotsPromises = blocks.map(async (block) => {
@@ -170,7 +170,7 @@ export class CalendarDataSource {
         return availableSlots.map(result => result.status === 'fulfilled' ? result.value : null);
     }
 
-    async checkForConflicts(bishopricMember: BishopricMember, start: DateTime<true>, end: DateTime<true>) {
+    async checkForConflicts(bishopricMember: string, start: DateTime<true>, end: DateTime<true>) {
         const startWithPadding = start.minus({ hours: 2 });
         const endWithPadding = end.plus({ hours: 2 });
         const currentEvents = await this.getEventsInTimeRange(bishopricMember, startWithPadding, endWithPadding);
