@@ -1,9 +1,51 @@
 extend type Query {
   self: User
+  users(input: UserSearch): UserConnection
+}
+
+input UserSearch {
+  paging: OffsetPaging
+  sorting: [UserSorting!]
+  filters: UserFilters
+}
+
+input UserSorting {
+  field: UserSortField!
+  direction: SortDirection!
+}
+
+enum UserSortField {
+  EMAIL
+  FIRST_NAME
+  LAST_NAME
+  IS_EMAIL_VERIFIED
+  IS_SITE_ADMIN
+}
+
+input UserFilters {
+  emailContains: String
+  firstNameContains: String
+  lastNameContains: String
+  isEmailVerified: Boolean
+  isSiteAdmin: Boolean
+  hasCalling: Boolean
+  callingIsOneOf: [ID!]
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  node: User!
 }
 
 type User {
   id: ID!
-  name: String!
+  firstName: String!
+  lastName: String!
   email: EmailAddress!
+  isSiteAdmin: Boolean
+  callings: [Calling!]!
 }

@@ -9,6 +9,7 @@ import { RedisClient } from './clients/redis'
 import { TokenStoreClient } from './clients/tokenStore'
 import { EmailClient } from './clients/email'
 import { CalendarClient } from './clients/calendar'
+import { SurrealClient } from './clients/surreal'
 
 const config = new Config();
 
@@ -16,6 +17,7 @@ const clients: Clients = {
   calendar: new CalendarClient(),
   email: new EmailClient(config),
   redis: new RedisClient(config),
+  surreal: new SurrealClient(config),
   tokenStore: new TokenStoreClient()
 }
 

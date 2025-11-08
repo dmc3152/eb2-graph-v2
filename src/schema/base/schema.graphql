@@ -3,3 +3,20 @@ type Mutation
 
 # https://github.com/Urigo/graphql-scalars/blob/master/src/scalars/iso-date/DateTime.ts
 scalar DateTime
+
+type PageInfo {
+  pageSize: Int!
+  pageOffset: Int!
+  hasNextPage: Boolean!
+  totalCount: Int!
+}
+
+input OffsetPaging {
+  limit: Int = 20
+  offset: Int = 0
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}

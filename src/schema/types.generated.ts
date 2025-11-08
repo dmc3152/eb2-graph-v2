@@ -77,6 +77,12 @@ export type AvailabilityBlockavailableSlotArgs = {
   durationInMinutes: Scalars['Int']['input'];
 };
 
+export type Calling = {
+  __typename?: 'Calling';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type Credentials = {
   email: Scalars['EmailAddress']['input'];
   password: Scalars['String']['input'];
@@ -157,6 +163,19 @@ export type MutationverifyEmailArgs = {
   email: Scalars['EmailAddress']['input'];
 };
 
+export type OffsetPaging = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  hasNextPage: Scalars['Boolean']['output'];
+  pageOffset: Scalars['Int']['output'];
+  pageSize: Scalars['Int']['output'];
+  totalCount: Scalars['Int']['output'];
+};
+
 export type PriorityDirection =
   | 'ASC'
   | 'DESC';
@@ -168,6 +187,7 @@ export type Query = {
   availabilityBlocks: Array<AvailabilityBlock>;
   availableTimeSlots: Array<Maybe<TimeSlot>>;
   self?: Maybe<User>;
+  users?: Maybe<UserConnection>;
 };
 
 
@@ -179,6 +199,11 @@ export type QueryavailabilityBlocksArgs = {
 export type QueryavailableTimeSlotsArgs = {
   bishopricMember: Scalars['ID']['input'];
   durationInMinutes: Scalars['Int']['input'];
+};
+
+
+export type QueryusersArgs = {
+  input?: InputMaybe<UserSearch>;
 };
 
 export type RequestPasswordResetError = GenericError & {
@@ -251,7 +276,8 @@ export type ResetPasswordPayload = {
 
 export type SignUpDetails = {
   email: Scalars['EmailAddress']['input'];
-  name: Scalars['String']['input'];
+  firstName: Scalars['String']['input'];
+  lastName: Scalars['String']['input'];
   password: Scalars['String']['input'];
 };
 
@@ -279,6 +305,10 @@ export type SignUpPayload = {
   success: Scalars['Boolean']['output'];
 };
 
+export type SortDirection =
+  | 'ASC'
+  | 'DESC';
+
 export type TimeSlot = {
   __typename?: 'TimeSlot';
   end?: Maybe<Scalars['DateTime']['output']>;
@@ -287,9 +317,51 @@ export type TimeSlot = {
 
 export type User = {
   __typename?: 'User';
+  callings: Array<Calling>;
   email: Scalars['EmailAddress']['output'];
+  firstName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
+  isSiteAdmin?: Maybe<Scalars['Boolean']['output']>;
+  lastName: Scalars['String']['output'];
+};
+
+export type UserConnection = {
+  __typename?: 'UserConnection';
+  edges: Array<UserEdge>;
+  pageInfo: PageInfo;
+};
+
+export type UserEdge = {
+  __typename?: 'UserEdge';
+  node: User;
+};
+
+export type UserFilters = {
+  callingIsOneOf?: InputMaybe<Array<Scalars['ID']['input']>>;
+  emailContains?: InputMaybe<Scalars['String']['input']>;
+  firstNameContains?: InputMaybe<Scalars['String']['input']>;
+  hasCalling?: InputMaybe<Scalars['Boolean']['input']>;
+  isEmailVerified?: InputMaybe<Scalars['Boolean']['input']>;
+  isSiteAdmin?: InputMaybe<Scalars['Boolean']['input']>;
+  lastNameContains?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UserSearch = {
+  filters?: InputMaybe<UserFilters>;
+  paging?: InputMaybe<OffsetPaging>;
+  sorting?: InputMaybe<Array<UserSorting>>;
+};
+
+export type UserSortField =
+  | 'EMAIL'
+  | 'FIRST_NAME'
+  | 'IS_EMAIL_VERIFIED'
+  | 'IS_SITE_ADMIN'
+  | 'LAST_NAME';
+
+export type UserSorting = {
+  direction: SortDirection;
+  field: UserSortField;
 };
 
 export type VerifyEmailError = GenericError & {
@@ -398,6 +470,7 @@ export type ResolversTypes = {
   AppointmentType: ResolverTypeWrapper<AppointmentType>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   AvailabilityBlock: ResolverTypeWrapper<AvailabilityBlockMapper>;
+  Calling: ResolverTypeWrapper<Calling>;
   Credentials: Credentials;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   EmailAddress: ResolverTypeWrapper<Scalars['EmailAddress']['output']>;
@@ -407,6 +480,8 @@ export type ResolversTypes = {
   LoginPayload: ResolverTypeWrapper<Omit<LoginPayload, 'error'> & { error?: Maybe<ResolversTypes['LoginError']> }>;
   LogoutPayload: ResolverTypeWrapper<LogoutPayload>;
   Mutation: ResolverTypeWrapper<{}>;
+  OffsetPaging: OffsetPaging;
+  PageInfo: ResolverTypeWrapper<PageInfo>;
   PriorityDirection: ResolverTypeWrapper<'ASC' | 'DESC'>;
   Query: ResolverTypeWrapper<{}>;
   RequestPasswordResetError: ResolverTypeWrapper<Omit<RequestPasswordResetError, 'code'> & { code?: Maybe<ResolversTypes['RequestPasswordResetErrorCodes']> }>;
@@ -423,8 +498,15 @@ export type ResolversTypes = {
   SignUpError: ResolverTypeWrapper<Omit<SignUpError, 'code'> & { code?: Maybe<ResolversTypes['SignUpErrorCodes']> }>;
   SignUpErrorCodes: ResolverTypeWrapper<'INVALID_PASSWORD_LENGTH' | 'MISSING_CAPITAL_LETTER' | 'MISSING_LOWERCASE_LETTER' | 'MISSING_NUMBER' | 'INVALID_PASSWORD_CHARACTER' | 'INVALID_CREDENTIALS' | 'EMAIL_VERIFIER_AUTHENTICATION_FAILED' | 'NOT_FOUND' | 'EMAIL_ERROR' | 'UNKNOWN_ERROR'>;
   SignUpPayload: ResolverTypeWrapper<Omit<SignUpPayload, 'error'> & { error?: Maybe<ResolversTypes['SignUpError']> }>;
+  SortDirection: ResolverTypeWrapper<'ASC' | 'DESC'>;
   TimeSlot: ResolverTypeWrapper<TimeSlot>;
   User: ResolverTypeWrapper<User>;
+  UserConnection: ResolverTypeWrapper<UserConnection>;
+  UserEdge: ResolverTypeWrapper<UserEdge>;
+  UserFilters: UserFilters;
+  UserSearch: UserSearch;
+  UserSortField: ResolverTypeWrapper<'EMAIL' | 'FIRST_NAME' | 'LAST_NAME' | 'IS_EMAIL_VERIFIED' | 'IS_SITE_ADMIN'>;
+  UserSorting: UserSorting;
   VerifyEmailError: ResolverTypeWrapper<Omit<VerifyEmailError, 'code'> & { code?: Maybe<ResolversTypes['VerifyEmailErrorCodes']> }>;
   VerifyEmailErrorCodes: ResolverTypeWrapper<'EMAIL_VERIFIER_AUTHENTICATION_FAILED' | 'NOT_FOUND' | 'CODE_EXPIRED' | 'CODE_INVALID' | 'DELETE_ERROR' | 'UNKNOWN_ERROR'>;
   VerifyEmailPayload: ResolverTypeWrapper<Omit<VerifyEmailPayload, 'error'> & { error?: Maybe<ResolversTypes['VerifyEmailError']> }>;
@@ -442,6 +524,7 @@ export type ResolversParentTypes = {
   AppointmentType: AppointmentType;
   Int: Scalars['Int']['output'];
   AvailabilityBlock: AvailabilityBlockMapper;
+  Calling: Calling;
   Credentials: Credentials;
   DateTime: Scalars['DateTime']['output'];
   EmailAddress: Scalars['EmailAddress']['output'];
@@ -450,6 +533,8 @@ export type ResolversParentTypes = {
   LoginPayload: Omit<LoginPayload, 'error'> & { error?: Maybe<ResolversParentTypes['LoginError']> };
   LogoutPayload: LogoutPayload;
   Mutation: {};
+  OffsetPaging: OffsetPaging;
+  PageInfo: PageInfo;
   Query: {};
   RequestPasswordResetError: RequestPasswordResetError;
   RequestPasswordResetPayload: Omit<RequestPasswordResetPayload, 'error'> & { error?: Maybe<ResolversParentTypes['RequestPasswordResetError']> };
@@ -463,6 +548,11 @@ export type ResolversParentTypes = {
   SignUpPayload: Omit<SignUpPayload, 'error'> & { error?: Maybe<ResolversParentTypes['SignUpError']> };
   TimeSlot: TimeSlot;
   User: User;
+  UserConnection: UserConnection;
+  UserEdge: UserEdge;
+  UserFilters: UserFilters;
+  UserSearch: UserSearch;
+  UserSorting: UserSorting;
   VerifyEmailError: VerifyEmailError;
   VerifyEmailPayload: Omit<VerifyEmailPayload, 'error'> & { error?: Maybe<ResolversParentTypes['VerifyEmailError']> };
 };
@@ -498,6 +588,12 @@ export type AvailabilityBlockResolvers<ContextType = any, ParentType extends Res
   end?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   priorityDirection?: Resolver<Maybe<ResolversTypes['PriorityDirection']>, ParentType, ContextType>;
   start?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CallingResolvers<ContextType = any, ParentType extends ResolversParentTypes['Calling'] = ResolversParentTypes['Calling']> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -545,6 +641,14 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   verifyEmail?: Resolver<ResolversTypes['VerifyEmailPayload'], ParentType, ContextType, RequireFields<MutationverifyEmailArgs, 'code' | 'email'>>;
 };
 
+export type PageInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
+  hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  pageOffset?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  pageSize?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type PriorityDirectionResolvers = EnumResolverSignature<{ ASC?: any, DESC?: any }, ResolversTypes['PriorityDirection']>;
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
@@ -553,6 +657,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   availabilityBlocks?: Resolver<Array<ResolversTypes['AvailabilityBlock']>, ParentType, ContextType, RequireFields<QueryavailabilityBlocksArgs, 'bishopricMember'>>;
   availableTimeSlots?: Resolver<Array<Maybe<ResolversTypes['TimeSlot']>>, ParentType, ContextType, RequireFields<QueryavailableTimeSlotsArgs, 'bishopricMember' | 'durationInMinutes'>>;
   self?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  users?: Resolver<Maybe<ResolversTypes['UserConnection']>, ParentType, ContextType, Partial<QueryusersArgs>>;
 };
 
 export type RequestPasswordResetErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['RequestPasswordResetError'] = ResolversParentTypes['RequestPasswordResetError']> = {
@@ -611,6 +716,8 @@ export type SignUpPayloadResolvers<ContextType = any, ParentType extends Resolve
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type SortDirectionResolvers = EnumResolverSignature<{ ASC?: any, DESC?: any }, ResolversTypes['SortDirection']>;
+
 export type TimeSlotResolvers<ContextType = any, ParentType extends ResolversParentTypes['TimeSlot'] = ResolversParentTypes['TimeSlot']> = {
   end?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   start?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
@@ -618,11 +725,27 @@ export type TimeSlotResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
+  callings?: Resolver<Array<ResolversTypes['Calling']>, ParentType, ContextType>;
   email?: Resolver<ResolversTypes['EmailAddress'], ParentType, ContextType>;
+  firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  isSiteAdmin?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
+
+export type UserConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserConnection'] = ResolversParentTypes['UserConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['UserEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UserEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserEdge'] = ResolversParentTypes['UserEdge']> = {
+  node?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UserSortFieldResolvers = EnumResolverSignature<{ EMAIL?: any, FIRST_NAME?: any, IS_EMAIL_VERIFIED?: any, IS_SITE_ADMIN?: any, LAST_NAME?: any }, ResolversTypes['UserSortField']>;
 
 export type VerifyEmailErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['VerifyEmailError'] = ResolversParentTypes['VerifyEmailError']> = {
   code?: Resolver<Maybe<ResolversTypes['VerifyEmailErrorCodes']>, ParentType, ContextType>;
@@ -644,6 +767,7 @@ export type Resolvers<ContextType = any> = {
   AppointmentPayload?: AppointmentPayloadResolvers<ContextType>;
   AppointmentType?: AppointmentTypeResolvers<ContextType>;
   AvailabilityBlock?: AvailabilityBlockResolvers<ContextType>;
+  Calling?: CallingResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
   EmailAddress?: GraphQLScalarType;
   GenericError?: GenericErrorResolvers<ContextType>;
@@ -652,6 +776,7 @@ export type Resolvers<ContextType = any> = {
   LoginPayload?: LoginPayloadResolvers<ContextType>;
   LogoutPayload?: LogoutPayloadResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  PageInfo?: PageInfoResolvers<ContextType>;
   PriorityDirection?: PriorityDirectionResolvers;
   Query?: QueryResolvers<ContextType>;
   RequestPasswordResetError?: RequestPasswordResetErrorResolvers<ContextType>;
@@ -666,8 +791,12 @@ export type Resolvers<ContextType = any> = {
   SignUpError?: SignUpErrorResolvers<ContextType>;
   SignUpErrorCodes?: SignUpErrorCodesResolvers;
   SignUpPayload?: SignUpPayloadResolvers<ContextType>;
+  SortDirection?: SortDirectionResolvers;
   TimeSlot?: TimeSlotResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
+  UserConnection?: UserConnectionResolvers<ContextType>;
+  UserEdge?: UserEdgeResolvers<ContextType>;
+  UserSortField?: UserSortFieldResolvers;
   VerifyEmailError?: VerifyEmailErrorResolvers<ContextType>;
   VerifyEmailErrorCodes?: VerifyEmailErrorCodesResolvers;
   VerifyEmailPayload?: VerifyEmailPayloadResolvers<ContextType>;

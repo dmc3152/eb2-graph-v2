@@ -1,14 +1,11 @@
-import { Config } from "../config";
+import { SurrealClient } from "../clients/surreal";
 import { AppointmentTypeDto } from "../dtos/appointmentType";
-import { SurrealHttpDataSource } from "./surrealHttp";
 
-export class AppointmentDetailsDataSource extends SurrealHttpDataSource {
-    constructor(protected config: Config) {
-        super(config);
-    }
+export class AppointmentDetailsDataSource {
+    constructor(private surreal: SurrealClient) { }
 
     async getAllAppointmentTypes() {
-        const response = await this.query<AppointmentTypeDto[]>({
+        const [response] = await this.surreal.query<[AppointmentTypeDto[]]>({
             query: `
                 SELECT * FROM appointment_type
             `,
@@ -17,8 +14,7 @@ export class AppointmentDetailsDataSource extends SurrealHttpDataSource {
     }
 
     async getAppointmentTypeById(id: string) {
-        console.log("Fetching appointment type by ID:", id);
-        const response = await this.query<AppointmentTypeDto>({
+        const [response] = await this.surreal.query<[AppointmentTypeDto]>({
             query: `
                 SELECT * FROM ONLY $id
             `,

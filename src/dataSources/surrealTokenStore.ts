@@ -2,23 +2,22 @@ import { decodeJwt } from "jose";
 import { RedisClient } from "../clients/redis";
 import { TokenStoreClient } from "../clients/tokenStore";
 import { Config } from "../config";
-import { SignInDto } from "../dtos/authentication";
 import { safeAsync } from "../utilities/safeAsync";
-import { HttpDataSource } from "./http";
 import { DateTime } from "luxon";
 import { SetOptions } from "redis";
+import { SurrealClient } from "../clients/surreal";
 
 export type MachineUser = "email_verifier" | "password_reset"
 
-export class SurrealTokenStore extends HttpDataSource {
+export class SurrealTokenStore {
     private readonly machineCredentials: Record<MachineUser, string>;
 
     constructor(
         private config: Config,
         private tokenStore: TokenStoreClient,
-        private redis: RedisClient
+        private redis: RedisClient,
+        private surreal: SurrealClient
     ) {
-        super(config.surreal.url);
         this.machineCredentials = {
             email_verifier: this.config.machineUserSecrets.emailVerifier,
             password_reset: this.config.machineUserSecrets.passwordReset
@@ -104,13 +103,10 @@ export class SurrealTokenStore extends HttpDataSource {
     }
 
     private machineLogin = async (key: MachineUser): Promise<string> => {
-        const signInDto = await this.post<SignInDto>('/signin', {
-            ns: this.config.surreal.namespace,
-            db: this.config.surreal.database,
-            ac: 'machine_user',
+        const token = await this.surreal.signInMachine({
             key,
             secret: this.machineCredentials[key]
         });
-        return signInDto.token;
+        return token;
     }
 }

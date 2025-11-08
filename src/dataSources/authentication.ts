@@ -1,35 +1,21 @@
 import { DateTime } from "luxon";
-import { Config } from "../config";
 import { Credentials, SignUpDetails } from "../schema/types.generated";
-import { SurrealHttpDataSource } from "./surrealHttp";
 import { GraphQLError } from "graphql";
-import { SignInDto, SignUpDto, PasswordResetDto, EmailVerificationDto } from "../dtos/authentication";
+import { PasswordResetDto, EmailVerificationDto } from "../dtos/authentication";
+import { SurrealClient } from "../clients/surreal";
 
-export class AuthenticationDataSource extends SurrealHttpDataSource {
-    constructor(protected config: Config) {
-        super(config);
-    }
+export class AuthenticationDataSource {
+    constructor(private surreal: SurrealClient) { }
 
     login = async (credentials: Credentials): Promise<string> => {
-        const signInDto = await this.post<SignInDto>('/signin', {
-            ns: this.config.surreal.namespace,
-            db: this.config.surreal.database,
-            ac: 'user',
-            ...credentials
-        });
-        
-        return signInDto.token;
+        const token = await this.surreal.signIn(credentials);
+        return token;
     }
 
     signUp = async (signUpDetails: SignUpDetails) => {
         try {
-            const signUpDto = await this.post<SignUpDto>('/signup', {
-                ns: this.config.surreal.namespace,
-                db: this.config.surreal.database,
-                ac: 'user',
-                ...signUpDetails
-            });
-            return !!signUpDto;
+            const token = await this.surreal.signUp(signUpDetails);
+            return !!token;
         }
         catch (error) {
             if (
@@ -46,7 +32,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     createEmailVerificationRecord = async (token: string, params: { email: string }) => {
-        const userResponse = await this.query<{ id: string }>({
+        const [userResponse] = await this.surreal.query<[{ id: string }]>({
             query: `
                 SELECT id FROM ONLY user WHERE email = string::lowercase($email) LIMIT 1;
             `,
@@ -54,7 +40,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
             token
         });
         
-        const response = await this.query<EmailVerificationDto>({
+        const [response] = await this.surreal.query<[EmailVerificationDto]>({
             query: `
                 CREATE ONLY email_verification CONTENT { user: $id }
             `,
@@ -66,7 +52,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     isEmailVerified = async (token: string, params: { email: string }) => {
-        const response = await this.query<{ is_email_verified: boolean }>({
+        const [response] = await this.surreal.query<[{ is_email_verified: boolean }]>({
             query: `
                 SELECT is_email_verified
                 FROM ONLY user
@@ -81,7 +67,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     getEmailVerificationRecord = async (token: string, params: { email: string }) => {
-        const response = await this.query<EmailVerificationDto | null>({
+        const [response] = await this.surreal.query<[EmailVerificationDto | null]>({
             query: `
                 SELECT *
                 FROM ONLY email_verification
@@ -98,7 +84,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     refreshEmailVerification = async (token: string, params: { id: string }) => {
         const newExpiration = DateTime.now().plus({ hours: 1 }).toISO();
         const newSecret = `${this.randomSixDigitNumber()}`;
-        const response = await this.query<EmailVerificationDto>({
+        const [response] = await this.surreal.query<[EmailVerificationDto]>({
             query: `
                 UPDATE ONLY $id
                 SET expiration = <datetime> $expiration,
@@ -112,7 +98,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     verifyEmail = async (token: string, params: { id: string }) => {
-        const response = await this.query<{ is_email_verified: boolean }>({
+        const [response] = await this.surreal.query<[{ is_email_verified: boolean }]>({
             query: `
                 UPDATE ONLY $id
                 SET is_email_verified = true
@@ -126,7 +112,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     deleteEmailVerificationRecord = async (token: string, params: { id: string }) => {
-        const response = await this.query<EmailVerificationDto>({
+        const [response] = await this.surreal.query<[EmailVerificationDto]>({
             query: `
                 DELETE ONLY $id RETURN BEFORE;
             `,
@@ -138,7 +124,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     getPasswordResetRecord = async (token: string, params: { email: string }) => {
-        const response = await this.query<PasswordResetDto>({
+        const [response] = await this.surreal.query<[PasswordResetDto]>({
             query: `
                 SELECT * FROM ONLY password_reset
                 WHERE user.email = string::lowercase($email)
@@ -157,7 +143,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     refreshPasswordReset = async (token: string, params: { id: string }) => {
         const newExpiration = DateTime.now().plus({ minutes: 15 }).toISO();
         const newSecret = `${this.randomSixDigitNumber()}`;
-        const response = await this.query<PasswordResetDto>({
+        const [response] = await this.surreal.query<[PasswordResetDto]>({
             query: `
                 UPDATE ONLY $id
                 SET expiration = <datetime> $expiration,
@@ -171,7 +157,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     createPasswordResetRecord = async (token: string, params: { email: string }) => {
-        const userResponse = await this.query<{ id: string }>({
+        const [userResponse] = await this.surreal.query<[{ id: string }]>({
             query: `
                 SELECT id FROM ONLY user WHERE email = string::lowercase($email) LIMIT 1;
             `,
@@ -179,7 +165,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
             token
         });
 
-        const response = await this.query<PasswordResetDto>({
+        const [response] = await this.surreal.query<[PasswordResetDto]>({
             query: `
                 CREATE ONLY password_reset CONTENT { user: $id }
             `,
@@ -191,7 +177,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     resetPassword = async (token: string, params: { id: string, password: string }) => {
-        const response = await this.query<[]>({
+        const [response] = await this.surreal.query<[[]]>({
             query: `
                 UPDATE $id
                 SET password = crypto::argon2::generate($password)
@@ -205,7 +191,7 @@ export class AuthenticationDataSource extends SurrealHttpDataSource {
     }
 
     deleteResetPasswordRecord = async (token: string, params: { id: string }) => {
-        const response = await this.query<PasswordResetDto>({
+        const [response] = await this.surreal.query<[PasswordResetDto]>({
             query: `
                 DELETE ONLY $id RETURN BEFORE;
             `,

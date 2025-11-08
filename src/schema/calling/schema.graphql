@@ -1,0 +1,4 @@
+type Calling {
+    id: ID!
+    name: String!
+}

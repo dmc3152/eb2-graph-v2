@@ -2,6 +2,7 @@ import { QueryResult } from "surrealdb";
 import { Config } from "../config";
 import { HttpDataSource } from "./http";
 import { GraphQLError } from "graphql";
+import { JSONResolver } from "graphql-scalars";
 
 export class SurrealHttpDataSource extends HttpDataSource {
     constructor(protected config: Config) {
@@ -30,9 +31,15 @@ export class SurrealHttpDataSource extends HttpDataSource {
             });
 
             const jsonResult = await response.json() as QueryResult<T>[];
-            if (jsonResult[0].status === "ERR") throw new GraphQLError(`There was a problem with querying SurrealDB. Status: ${response.statusText}`, { extensions: { serverResponse: jsonResult[0] }});
+            jsonResult.forEach(res => {
+                if (res.status === "ERR") throw new GraphQLError(`There was a problem with querying SurrealDB. Status: ${response.statusText}`, { extensions: { serverResponse: res } });
+            });
 
-            return jsonResult[0].result;
+            if (jsonResult.length === 1) {
+                return jsonResult[0].result as T;
+            }
+
+            return jsonResult.map(res => res.result) as T;
         }
         catch (error) {
             if (error instanceof Error) throw error;

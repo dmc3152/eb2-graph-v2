@@ -16,7 +16,8 @@ input Credentials {
 input SignUpDetails {
     email: EmailAddress!
     password: String!
-    name: String!
+    firstName: String!
+    lastName: String!
 }
 
 type SignUpPayload {

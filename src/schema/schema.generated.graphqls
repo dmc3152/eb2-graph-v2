@@ -46,6 +46,11 @@ type AvailabilityBlock {
   start: DateTime
 }
 
+type Calling {
+  id: ID!
+  name: String!
+}
+
 input Credentials {
   email: EmailAddress!
   password: String!
@@ -91,6 +96,18 @@ type Mutation {
   verifyEmail(code: Int!, email: EmailAddress!): VerifyEmailPayload!
 }
 
+input OffsetPaging {
+  limit: Int = 20
+  offset: Int = 0
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  pageOffset: Int!
+  pageSize: Int!
+  totalCount: Int!
+}
+
 enum PriorityDirection {
   ASC
   DESC
@@ -102,6 +119,7 @@ type Query {
   availabilityBlocks(bishopricMember: ID!): [AvailabilityBlock!]!
   availableTimeSlots(bishopricMember: ID!, durationInMinutes: Int!): [TimeSlot]!
   self: User
+  users(input: UserSearch): UserConnection
 }
 
 type RequestPasswordResetError implements GenericError {
@@ -171,7 +189,8 @@ type ResetPasswordPayload {
 
 input SignUpDetails {
   email: EmailAddress!
-  name: String!
+  firstName: String!
+  lastName: String!
   password: String!
 }
 
@@ -198,15 +217,61 @@ type SignUpPayload {
   success: Boolean!
 }
 
+enum SortDirection {
+  ASC
+  DESC
+}
+
 type TimeSlot {
   end: DateTime
   start: DateTime
 }
 
 type User {
+  callings: [Calling!]!
   email: EmailAddress!
+  firstName: String!
   id: ID!
-  name: String!
+  isSiteAdmin: Boolean
+  lastName: String!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  node: User!
+}
+
+input UserFilters {
+  callingIsOneOf: [ID!]
+  emailContains: String
+  firstNameContains: String
+  hasCalling: Boolean
+  isEmailVerified: Boolean
+  isSiteAdmin: Boolean
+  lastNameContains: String
+}
+
+input UserSearch {
+  filters: UserFilters
+  paging: OffsetPaging
+  sorting: [UserSorting!]
+}
+
+enum UserSortField {
+  EMAIL
+  FIRST_NAME
+  IS_EMAIL_VERIFIED
+  IS_SITE_ADMIN
+  LAST_NAME
+}
+
+input UserSorting {
+  direction: SortDirection!
+  field: UserSortField!
 }
 
 type VerifyEmailError implements GenericError {

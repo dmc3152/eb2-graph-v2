@@ -1,7 +1,6 @@
 import { CalendarDataSource } from "./dataSources/calendar"
 import { AppointmentDetailsDataSource } from "./dataSources/appointmentDetails"
 import { Config } from "./config"
-import Surreal from "surrealdb"
 import { YogaInitialContext } from "graphql-yoga"
 import { EmailerDataSource } from "./dataSources/emailer"
 import { CalendarClient } from "./clients/calendar"
@@ -13,11 +12,13 @@ import { AuthenticationDataSource } from "./dataSources/authentication"
 import { SurrealHttpDataSource } from "./dataSources/surrealHttp"
 import { UserDataSource } from "./dataSources/user"
 import { CookieDataSource } from "./dataSources/cookie"
+import { SurrealClient } from "./clients/surreal"
 
 export interface Clients {
     calendar: CalendarClient
     email: EmailClient
     redis: RedisClient
+    surreal: SurrealClient
     tokenStore: TokenStoreClient
 }
 
@@ -59,14 +60,14 @@ export const buildContext = (
     clients: Clients
 ) => async ({ request, params }: YogaInitialContext): Promise<RequestContext> => {
     const dataSources: RequestContext['dataSources'] = {
-        appointmentDetails: lazyLoad(AppointmentDetailsDataSource, config),
-        authentication: lazyLoad(AuthenticationDataSource, config),
+        appointmentDetails: lazyLoad(AppointmentDetailsDataSource, clients.surreal),
+        authentication: lazyLoad(AuthenticationDataSource, clients.surreal),
         calendar: lazyLoad(CalendarDataSource, clients.calendar),
         cookie: lazyLoad(CookieDataSource, request, config),
         emailer: lazyLoad(EmailerDataSource, clients.email, config),
         surrealHttp: lazyLoad(SurrealHttpDataSource, config),
-        surrealTokenStore: lazyLoad(SurrealTokenStore, config, clients.tokenStore, clients.redis),
-        user: lazyLoad(UserDataSource, config)
+        surrealTokenStore: lazyLoad(SurrealTokenStore, config, clients.tokenStore, clients.redis, clients.surreal),
+        user: lazyLoad(UserDataSource, clients.surreal)
     };
 
     if (params.operationName === 'IntrospectionQuery') {
