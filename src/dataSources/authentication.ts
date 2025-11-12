@@ -3,6 +3,7 @@ import { Credentials, SignUpDetails } from "../schema/types.generated";
 import { GraphQLError } from "graphql";
 import { PasswordResetDto, EmailVerificationDto } from "../dtos/authentication";
 import { SurrealClient } from "../clients/surreal";
+import { StringRecordId } from "surrealdb";
 
 export class AuthenticationDataSource {
     constructor(private surreal: SurrealClient) { }
@@ -44,7 +45,7 @@ export class AuthenticationDataSource {
             query: `
                 CREATE ONLY email_verification CONTENT { user: $id }
             `,
-            params: { id: userResponse.id },
+            params: { id: new StringRecordId(userResponse.id) },
             token
         });
         
@@ -90,7 +91,7 @@ export class AuthenticationDataSource {
                 SET expiration = <datetime> $expiration,
                 secret = $secret
             `,
-            params: { ...params, expiration: newExpiration, secret: newSecret },
+            params: { id: new StringRecordId(params.id), expiration: newExpiration, secret: newSecret },
             token
         });
 
@@ -104,7 +105,7 @@ export class AuthenticationDataSource {
                 SET is_email_verified = true
                 RETURN is_email_verified;
             `,
-            params: { ...params },
+            params: { id: new StringRecordId(params.id) },
             token
         });
 
@@ -116,7 +117,7 @@ export class AuthenticationDataSource {
             query: `
                 DELETE ONLY $id RETURN BEFORE;
             `,
-            params,
+            params: { id: new StringRecordId(params.id) },
             token
         });
 
@@ -149,7 +150,7 @@ export class AuthenticationDataSource {
                 SET expiration = <datetime> $expiration,
                 secret = $secret
             `,
-            params: { ...params, expiration: newExpiration, secret: newSecret },
+            params: { id: new StringRecordId(params.id), expiration: newExpiration, secret: newSecret },
             token
         });
         
@@ -169,7 +170,7 @@ export class AuthenticationDataSource {
             query: `
                 CREATE ONLY password_reset CONTENT { user: $id }
             `,
-            params: { id: userResponse.id },
+            params: { id: new StringRecordId(userResponse.id) },
             token
         });
 
@@ -183,7 +184,7 @@ export class AuthenticationDataSource {
                 SET password = crypto::argon2::generate($password)
                 RETURN NONE;
             `,
-            params,
+            params: { id: new StringRecordId(params.id), password: params.password },
             token
         });
 
@@ -195,7 +196,7 @@ export class AuthenticationDataSource {
             query: `
                 DELETE ONLY $id RETURN BEFORE;
             `,
-            params,
+            params: { id: new StringRecordId(params.id) },
             token
         });
 

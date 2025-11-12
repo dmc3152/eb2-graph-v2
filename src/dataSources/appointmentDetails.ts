@@ -1,3 +1,4 @@
+import { StringRecordId } from "surrealdb";
 import { SurrealClient } from "../clients/surreal";
 import { AppointmentTypeDto } from "../dtos/appointmentType";
 
@@ -18,7 +19,7 @@ export class AppointmentDetailsDataSource {
             query: `
                 SELECT * FROM ONLY $id
             `,
-            params: { id }
+            params: { id: new StringRecordId(id) },
         });
         return response;
     }
