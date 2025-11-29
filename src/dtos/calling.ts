@@ -1,4 +1,6 @@
+import { RecordId } from "surrealdb"
+
 export interface CallingDto {
-    id: string
+    id: RecordId
     name: string
 }

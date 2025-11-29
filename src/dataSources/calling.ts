@@ -1,10 +1,10 @@
-import { SurrealClient } from "../clients/surreal";
+import { SurrealUserClient } from "../clients/surrealUser";
 import { Config } from "../config";
 import { CallingDto } from "../dtos/calling";
 import { SurrealHttpDataSource } from "./surrealHttp";
 
 export class CallingDataSource extends SurrealHttpDataSource {
-    constructor(protected config: Config, private surreal: SurrealClient) {
+    constructor(protected config: Config, private surreal: SurrealUserClient) {
         super(config);
     }
 

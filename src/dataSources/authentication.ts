@@ -2,11 +2,12 @@ import { DateTime } from "luxon";
 import { Credentials, SignUpDetails } from "../schema/types.generated";
 import { GraphQLError } from "graphql";
 import { PasswordResetDto, EmailVerificationDto } from "../dtos/authentication";
-import { SurrealClient } from "../clients/surreal";
+import { SurrealUserClient } from "../clients/surrealUser";
 import { StringRecordId } from "surrealdb";
+import { SurrealMachineClient } from "../clients/surrealMachine";
 
 export class AuthenticationDataSource {
-    constructor(private surreal: SurrealClient) { }
+    constructor(private surreal: SurrealUserClient, private emailVerifier: SurrealMachineClient, private passwordResetAgent: SurrealMachineClient) { }
 
     login = async (credentials: Credentials): Promise<string> => {
         const token = await this.surreal.signIn(credentials);
@@ -32,107 +33,99 @@ export class AuthenticationDataSource {
         return false;
     }
 
-    createEmailVerificationRecord = async (token: string, params: { email: string }) => {
-        const [userResponse] = await this.surreal.query<[{ id: string }]>({
+    createEmailVerificationRecord = async (params: { email: string }) => {
+        const [userResponse] = await this.emailVerifier.query<[{ id: string }]>({
             query: `
                 SELECT id FROM ONLY user WHERE email = string::lowercase($email) LIMIT 1;
             `,
-            params,
-            token
+            params
         });
         
-        const [response] = await this.surreal.query<[EmailVerificationDto]>({
+        const [response] = await this.emailVerifier.query<[EmailVerificationDto]>({
             query: `
                 CREATE ONLY email_verification CONTENT { user: $id }
             `,
-            params: { id: new StringRecordId(userResponse.id) },
-            token
+            params: { id: new StringRecordId(userResponse.id) }
         });
         
         return response;
     }
 
-    isEmailVerified = async (token: string, params: { email: string }) => {
-        const [response] = await this.surreal.query<[{ is_email_verified: boolean }]>({
+    isEmailVerified = async (params: { email: string }) => {
+        const [response] = await this.emailVerifier.query<[{ is_email_verified: boolean }]>({
             query: `
                 SELECT is_email_verified
                 FROM ONLY user
                 WHERE email = string::lowercase($email)
                 LIMIT 1;
             `,
-            params,
-            token
+            params
         });
 
         return response.is_email_verified;
     }
 
-    getEmailVerificationRecord = async (token: string, params: { email: string }) => {
-        const [response] = await this.surreal.query<[EmailVerificationDto | null]>({
+    getEmailVerificationRecord = async (params: { email: string }) => {
+        const [response] = await this.emailVerifier.query<[EmailVerificationDto | null]>({
             query: `
                 SELECT *
                 FROM ONLY email_verification
                 WHERE user.email = string::lowercase($email)
                 LIMIT 1;
             `,
-            params,
-            token
+            params
         });
         
         return response;
     }
 
-    refreshEmailVerification = async (token: string, params: { id: string }) => {
+    refreshEmailVerification = async (params: { id: string }) => {
         const newExpiration = DateTime.now().plus({ hours: 1 }).toISO();
         const newSecret = `${this.randomSixDigitNumber()}`;
-        const [response] = await this.surreal.query<[EmailVerificationDto]>({
+        const [response] = await this.emailVerifier.query<[EmailVerificationDto]>({
             query: `
                 UPDATE ONLY $id
                 SET expiration = <datetime> $expiration,
                 secret = $secret
             `,
-            params: { id: new StringRecordId(params.id), expiration: newExpiration, secret: newSecret },
-            token
+            params: { id: new StringRecordId(params.id), expiration: newExpiration, secret: newSecret }
         });
 
         return response;
     }
 
-    verifyEmail = async (token: string, params: { id: string }) => {
-        const [response] = await this.surreal.query<[{ is_email_verified: boolean }]>({
+    verifyEmail = async (params: { id: string }) => {
+        const [response] = await this.emailVerifier.query<[{ is_email_verified: boolean }]>({
             query: `
                 UPDATE ONLY $id
                 SET is_email_verified = true
                 RETURN is_email_verified;
             `,
-            params: { id: new StringRecordId(params.id) },
-            token
+            params: { id: new StringRecordId(params.id) }
         });
 
         return response.is_email_verified;
     }
 
-    deleteEmailVerificationRecord = async (token: string, params: { id: string }) => {
-        const [response] = await this.surreal.query<[EmailVerificationDto]>({
+    deleteEmailVerificationRecord = async (params: { id: string }) => {
+        const [response] = await this.emailVerifier.query<[EmailVerificationDto]>({
             query: `
                 DELETE ONLY $id RETURN BEFORE;
             `,
-            params: { id: new StringRecordId(params.id) },
-            token
+            params: { id: new StringRecordId(params.id) }
         });
 
         return response;
     }
 
-    getPasswordResetRecord = async (token: string, params: { email: string }) => {
-        const [response] = await this.surreal.query<[PasswordResetDto]>({
+    getPasswordResetRecord = async (params: { email: string }) => {
+        const [response] = await this.passwordResetAgent.query<[PasswordResetDto]>({
             query: `
                 SELECT * FROM ONLY password_reset
                 WHERE user.email = string::lowercase($email)
                 LIMIT 1;
             `,
-            params,
-            token
+            params
         });
         return response;
     }
@@ -141,63 +134,58 @@ export class AuthenticationDataSource {
         return Math.floor(Math.random() * 900_000) + 100_000;
     }
 
-    refreshPasswordReset = async (token: string, params: { id: string }) => {
+    refreshPasswordReset = async (params: { id: string }) => {
         const newExpiration = DateTime.now().plus({ minutes: 15 }).toISO();
         const newSecret = `${this.randomSixDigitNumber()}`;
-        const [response] = await this.surreal.query<[PasswordResetDto]>({
+        const [response] = await this.passwordResetAgent.query<[PasswordResetDto]>({
             query: `
                 UPDATE ONLY $id
                 SET expiration = <datetime> $expiration,
                 secret = $secret
             `,
-            params: { id: new StringRecordId(params.id), expiration: newExpiration, secret: newSecret },
-            token
+            params: { id: new StringRecordId(params.id), expiration: newExpiration, secret: newSecret }
         });
         
         return response;
     }
 
-    createPasswordResetRecord = async (token: string, params: { email: string }) => {
-        const [userResponse] = await this.surreal.query<[{ id: string }]>({
+    createPasswordResetRecord = async (params: { email: string }) => {
+        const [userResponse] = await this.passwordResetAgent.query<[{ id: string }]>({
             query: `
                 SELECT id FROM ONLY user WHERE email = string::lowercase($email) LIMIT 1;
             `,
-            params,
-            token
+            params
         });
 
-        const [response] = await this.surreal.query<[PasswordResetDto]>({
+        const [response] = await this.passwordResetAgent.query<[PasswordResetDto]>({
             query: `
                 CREATE ONLY password_reset CONTENT { user: $id }
             `,
-            params: { id: new StringRecordId(userResponse.id) },
-            token
+            params: { id: new StringRecordId(userResponse.id) }
         });
 
         return response;
     }
 
-    resetPassword = async (token: string, params: { id: string, password: string }) => {
-        const [response] = await this.surreal.query<[[]]>({
+    resetPassword = async (params: { id: string, password: string }) => {
+        const [response] = await this.passwordResetAgent.query<[[]]>({
             query: `
                 UPDATE $id
                 SET password = crypto::argon2::generate($password)
                 RETURN NONE;
             `,
-            params: { id: new StringRecordId(params.id), password: params.password },
-            token
+            params: { id: new StringRecordId(params.id), password: params.password }
         });
 
         return Array.isArray(response);
     }
 
-    deleteResetPasswordRecord = async (token: string, params: { id: string }) => {
-        const [response] = await this.surreal.query<[PasswordResetDto]>({
+    deleteResetPasswordRecord = async (params: { id: string }) => {
+        const [response] = await this.passwordResetAgent.query<[PasswordResetDto]>({
             query: `
                 DELETE ONLY $id RETURN BEFORE;
             `,
-            params: { id: new StringRecordId(params.id) },
-            token
+            params: { id: new StringRecordId(params.id) }
         });
 
         return response;

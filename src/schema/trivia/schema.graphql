@@ -1,0 +1,108 @@
+type TriviaGameUpdateForPlayer {
+    state: TriviaGameState!
+    question: TriviaQuestion
+    time: Int
+}
+
+type TriviaGameUpdateForAdmin {
+    state: TriviaGameState!
+    question: TriviaQuestion
+    time: Int
+}
+
+type TriviaGameUpdateForBoard {
+    state: TriviaGameState!
+    question: TriviaQuestion
+    scores: [TriviaGameScore!]
+    time: Int
+}
+
+enum TriviaGameState {
+    SPLASH
+    QUESTION
+    ANSWER
+    SCORE
+    PAUSED
+    STOPPED
+    CLOSED
+}
+
+type TriviaQuestion {
+    question: String!
+    options: [TriviaOption!]!
+    correctAnswer: TriviaAnswer
+    category: String!
+}
+
+type TriviaOption {
+    option: TriviaAnswer!
+    text: String!
+}
+
+enum TriviaAnswer {
+    A
+    B
+    C
+    D
+}
+
+type TriviaGameScore {
+    category: String!
+    scores: [PlayerScore!]!
+}
+
+type PlayerScore {
+    playerName: String!
+    score: Int!
+}
+
+type TriviaPlayerScore {
+    category: String!
+    score: Int!
+}
+
+type TriviaGamePayload {
+    success: Boolean!
+    error: TriviaGameError
+}
+
+type TriviaGameError implements GenericError {
+    code: TriviaGameErrorCodes
+    message: String
+}
+
+enum TriviaGameErrorCodes {
+    GAME_NOT_FOUND
+    GAME_ALREADY_EXISTS
+    INSUFFICIENT_PERMISSIONS
+    UNKNOWN_ERROR
+}
+
+type TriviaGame {
+    id: ID!
+}
+
+extend type Query {
+    currentGame: TriviaGame
+    myTriviaScore: [TriviaPlayerScore!]!
+}
+
+extend type Mutation {
+    changeMyTriviaPlayerName(newName: String!): TriviaGamePayload!
+    submitTriviaAnswer(answer: TriviaAnswer!): TriviaGamePayload!
+    createTriviaGame(gameId: ID!): TriviaGamePayload!
+    startTriviaGame(gameId: ID!): TriviaGamePayload!
+    nextTriviaQuestion: TriviaGamePayload!
+    stopTriviaGame: TriviaGamePayload!
+    pauseTriviaGame: TriviaGamePayload!
+    resumeTriviaGame: TriviaGamePayload!
+    closeTriviaGame: TriviaGamePayload!
+    showScoreAfterQuestion: TriviaGamePayload!
+    showScoreImmediately: TriviaGamePayload!
+}
+
+extend type Subscription {
+    joinTriviaGameAsPlayer: TriviaGameUpdateForPlayer!
+    joinTriviaGameAsBoard: TriviaGameUpdateForBoard!
+    joinTriviaGameAsAdmin: TriviaGameUpdateForAdmin!
+}

@@ -3,16 +3,7 @@ import { safeAsync } from '../../../../utilities/safeAsync';
 import type { MutationResolvers } from './../../../types.generated';
 
 export const requestPasswordReset: NonNullable<MutationResolvers['requestPasswordReset']> = async (_parent, { email }, { config, dataSources }: RequestContext) => {
-    const passwordResetAgentToken = await dataSources.surrealTokenStore().getMachineToken("password_reset");
-    if (!passwordResetAgentToken) return {
-        success: false,
-        error: {
-            code: "PASSWORD_RESET_AGENT_AUTHENTICATION_FAILED",
-            message: "Password reset agent could not authenticate to database"
-        }
-    }
-    
-    const [error, passwordResetDetails] = await safeAsync(dataSources.authentication().getPasswordResetRecord(passwordResetAgentToken, { email }));
+    const [error, passwordResetDetails] = await safeAsync(dataSources.authentication().getPasswordResetRecord({ email }));
     if (error) return {
         success: false,
         error: {
@@ -23,7 +14,7 @@ export const requestPasswordReset: NonNullable<MutationResolvers['requestPasswor
 
     let code: number;
     if (passwordResetDetails) {
-        const [updateError, record] = await safeAsync(dataSources.authentication().refreshPasswordReset(passwordResetAgentToken, { id: passwordResetDetails.id }));
+        const [updateError, record] = await safeAsync(dataSources.authentication().refreshPasswordReset({ id: passwordResetDetails.id }));
         if (updateError) return {
             success: false,
             error: {
@@ -34,7 +25,7 @@ export const requestPasswordReset: NonNullable<MutationResolvers['requestPasswor
         code = record.secret;
     }
     else {
-        const [createError, createResult] = await safeAsync(dataSources.authentication().createPasswordResetRecord(passwordResetAgentToken, { email }));
+        const [createError, createResult] = await safeAsync(dataSources.authentication().createPasswordResetRecord({ email }));
         if (createError) return {
             success: false,
             error: {

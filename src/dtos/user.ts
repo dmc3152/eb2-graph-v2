@@ -1,7 +1,8 @@
+import { RecordId } from "surrealdb"
 import { CallingDto } from "./calling"
 
 export type UserDto = {
-    id: string
+    id: RecordId
     email: string
     first_name: string
     last_name: string

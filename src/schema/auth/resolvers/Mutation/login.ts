@@ -14,7 +14,7 @@ export const login: NonNullable<MutationResolvers['login']> = async (_parent, { 
         }
     }
     
-    const [error, user] = await safeAsync(dataSources.user().authenticatedUser(token));
+    const [error, user] = await safeAsync(dataSources.user().authenticatedUser());
     if (error || !user) return {
         success: false,
         error: {
@@ -25,7 +25,7 @@ export const login: NonNullable<MutationResolvers['login']> = async (_parent, { 
 
     const sessionId = randomUUID();
     const userSessionId = `${user.id}-${sessionId}`;
-    await dataSources.surrealTokenStore().setUserToken(userSessionId, token);
+    await dataSources.userTokenStore().setUserToken(userSessionId, token);
 
     const expirationDate = DateTime.now().plus({ days: 90 }).minus({ hours: 1 }).toJSDate();
     await dataSources.cookie().set({

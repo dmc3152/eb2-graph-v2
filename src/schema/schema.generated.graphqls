@@ -86,13 +86,24 @@ type LogoutPayload {
 }
 
 type Mutation {
+  changeMyTriviaPlayerName(newName: String!): TriviaGamePayload!
+  closeTriviaGame: TriviaGamePayload!
   createAppointment(input: AppointmentDetails!): AppointmentPayload!
+  createTriviaGame(gameId: ID!): TriviaGamePayload!
   login(input: Credentials!): LoginPayload!
   logout: LogoutPayload!
+  nextTriviaQuestion: TriviaGamePayload!
+  pauseTriviaGame: TriviaGamePayload!
   requestPasswordReset(email: EmailAddress!): RequestPasswordResetPayload!
   resendEmailVerification(email: EmailAddress!): ResendEmailVerificationPayload!
   resetPassword(input: ResetPasswordDetails!): ResetPasswordPayload!
+  resumeTriviaGame: TriviaGamePayload!
+  showScoreAfterQuestion: TriviaGamePayload!
+  showScoreImmediately: TriviaGamePayload!
   signUp(input: SignUpDetails!): SignUpPayload!
+  startTriviaGame(gameId: ID!): TriviaGamePayload!
+  stopTriviaGame: TriviaGamePayload!
+  submitTriviaAnswer(answer: TriviaAnswer!): TriviaGamePayload!
   verifyEmail(code: Int!, email: EmailAddress!): VerifyEmailPayload!
 }
 
@@ -108,6 +119,11 @@ type PageInfo {
   totalCount: Int!
 }
 
+type PlayerScore {
+  playerName: String!
+  score: Int!
+}
+
 enum PriorityDirection {
   ASC
   DESC
@@ -118,6 +134,8 @@ type Query {
   allAvailabilityBlocks: [AvailabilityBlock!]!
   availabilityBlocks(bishopricMember: ID!): [AvailabilityBlock!]!
   availableTimeSlots(bishopricMember: ID!, durationInMinutes: Int!): [TimeSlot]!
+  currentGame: TriviaGame
+  myTriviaScore: [TriviaPlayerScore!]!
   self: User
   users(input: UserSearch): UserConnection
 }
@@ -222,9 +240,94 @@ enum SortDirection {
   DESC
 }
 
+type Subscription {
+  joinTriviaGameAsAdmin: TriviaGameUpdateForAdmin!
+  joinTriviaGameAsBoard: TriviaGameUpdateForBoard!
+  joinTriviaGameAsPlayer: TriviaGameUpdateForPlayer!
+}
+
 type TimeSlot {
   end: DateTime
   start: DateTime
+}
+
+enum TriviaAnswer {
+  A
+  B
+  C
+  D
+}
+
+type TriviaGame {
+  id: ID!
+}
+
+type TriviaGameError implements GenericError {
+  code: TriviaGameErrorCodes
+  message: String
+}
+
+enum TriviaGameErrorCodes {
+  GAME_ALREADY_EXISTS
+  GAME_NOT_FOUND
+  INSUFFICIENT_PERMISSIONS
+  UNKNOWN_ERROR
+}
+
+type TriviaGamePayload {
+  error: TriviaGameError
+  success: Boolean!
+}
+
+type TriviaGameScore {
+  category: String!
+  scores: [PlayerScore!]!
+}
+
+enum TriviaGameState {
+  ANSWER
+  CLOSED
+  PAUSED
+  QUESTION
+  SCORE
+  SPLASH
+  STOPPED
+}
+
+type TriviaGameUpdateForAdmin {
+  question: TriviaQuestion
+  state: TriviaGameState!
+  time: Int
+}
+
+type TriviaGameUpdateForBoard {
+  question: TriviaQuestion
+  scores: [TriviaGameScore!]
+  state: TriviaGameState!
+  time: Int
+}
+
+type TriviaGameUpdateForPlayer {
+  question: TriviaQuestion
+  state: TriviaGameState!
+  time: Int
+}
+
+type TriviaOption {
+  option: TriviaAnswer!
+  text: String!
+}
+
+type TriviaPlayerScore {
+  category: String!
+  score: Int!
+}
+
+type TriviaQuestion {
+  category: String!
+  correctAnswer: TriviaAnswer
+  options: [TriviaOption!]!
+  question: String!
 }
 
 type User {

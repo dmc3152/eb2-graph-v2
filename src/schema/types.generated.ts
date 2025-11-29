@@ -117,19 +117,40 @@ export type LogoutPayload = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  changeMyTriviaPlayerName: TriviaGamePayload;
+  closeTriviaGame: TriviaGamePayload;
   createAppointment: AppointmentPayload;
+  createTriviaGame: TriviaGamePayload;
   login: LoginPayload;
   logout: LogoutPayload;
+  nextTriviaQuestion: TriviaGamePayload;
+  pauseTriviaGame: TriviaGamePayload;
   requestPasswordReset: RequestPasswordResetPayload;
   resendEmailVerification: ResendEmailVerificationPayload;
   resetPassword: ResetPasswordPayload;
+  resumeTriviaGame: TriviaGamePayload;
+  showScoreAfterQuestion: TriviaGamePayload;
+  showScoreImmediately: TriviaGamePayload;
   signUp: SignUpPayload;
+  startTriviaGame: TriviaGamePayload;
+  stopTriviaGame: TriviaGamePayload;
+  submitTriviaAnswer: TriviaGamePayload;
   verifyEmail: VerifyEmailPayload;
+};
+
+
+export type MutationchangeMyTriviaPlayerNameArgs = {
+  newName: Scalars['String']['input'];
 };
 
 
 export type MutationcreateAppointmentArgs = {
   input: AppointmentDetails;
+};
+
+
+export type MutationcreateTriviaGameArgs = {
+  gameId: Scalars['ID']['input'];
 };
 
 
@@ -158,6 +179,16 @@ export type MutationsignUpArgs = {
 };
 
 
+export type MutationstartTriviaGameArgs = {
+  gameId: Scalars['ID']['input'];
+};
+
+
+export type MutationsubmitTriviaAnswerArgs = {
+  answer: TriviaAnswer;
+};
+
+
 export type MutationverifyEmailArgs = {
   code: Scalars['Int']['input'];
   email: Scalars['EmailAddress']['input'];
@@ -176,6 +207,12 @@ export type PageInfo = {
   totalCount: Scalars['Int']['output'];
 };
 
+export type PlayerScore = {
+  __typename?: 'PlayerScore';
+  playerName: Scalars['String']['output'];
+  score: Scalars['Int']['output'];
+};
+
 export type PriorityDirection =
   | 'ASC'
   | 'DESC';
@@ -186,6 +223,8 @@ export type Query = {
   allAvailabilityBlocks: Array<AvailabilityBlock>;
   availabilityBlocks: Array<AvailabilityBlock>;
   availableTimeSlots: Array<Maybe<TimeSlot>>;
+  currentGame?: Maybe<TriviaGame>;
+  myTriviaScore: Array<TriviaPlayerScore>;
   self?: Maybe<User>;
   users?: Maybe<UserConnection>;
 };
@@ -309,10 +348,103 @@ export type SortDirection =
   | 'ASC'
   | 'DESC';
 
+export type Subscription = {
+  __typename?: 'Subscription';
+  joinTriviaGameAsAdmin: TriviaGameUpdateForAdmin;
+  joinTriviaGameAsBoard: TriviaGameUpdateForBoard;
+  joinTriviaGameAsPlayer: TriviaGameUpdateForPlayer;
+};
+
 export type TimeSlot = {
   __typename?: 'TimeSlot';
   end?: Maybe<Scalars['DateTime']['output']>;
   start?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export type TriviaAnswer =
+  | 'A'
+  | 'B'
+  | 'C'
+  | 'D';
+
+export type TriviaGame = {
+  __typename?: 'TriviaGame';
+  id: Scalars['ID']['output'];
+};
+
+export type TriviaGameError = GenericError & {
+  __typename?: 'TriviaGameError';
+  code?: Maybe<TriviaGameErrorCodes>;
+  message?: Maybe<Scalars['String']['output']>;
+};
+
+export type TriviaGameErrorCodes =
+  | 'GAME_ALREADY_EXISTS'
+  | 'GAME_NOT_FOUND'
+  | 'INSUFFICIENT_PERMISSIONS'
+  | 'UNKNOWN_ERROR';
+
+export type TriviaGamePayload = {
+  __typename?: 'TriviaGamePayload';
+  error?: Maybe<TriviaGameError>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type TriviaGameScore = {
+  __typename?: 'TriviaGameScore';
+  category: Scalars['String']['output'];
+  scores: Array<PlayerScore>;
+};
+
+export type TriviaGameState =
+  | 'ANSWER'
+  | 'CLOSED'
+  | 'PAUSED'
+  | 'QUESTION'
+  | 'SCORE'
+  | 'SPLASH'
+  | 'STOPPED';
+
+export type TriviaGameUpdateForAdmin = {
+  __typename?: 'TriviaGameUpdateForAdmin';
+  question?: Maybe<TriviaQuestion>;
+  state: TriviaGameState;
+  time?: Maybe<Scalars['Int']['output']>;
+};
+
+export type TriviaGameUpdateForBoard = {
+  __typename?: 'TriviaGameUpdateForBoard';
+  question?: Maybe<TriviaQuestion>;
+  scores?: Maybe<Array<TriviaGameScore>>;
+  state: TriviaGameState;
+  time?: Maybe<Scalars['Int']['output']>;
+};
+
+export type TriviaGameUpdateForPlayer = {
+  __typename?: 'TriviaGameUpdateForPlayer';
+  question?: Maybe<TriviaQuestion>;
+  state: TriviaGameState;
+  time?: Maybe<Scalars['Int']['output']>;
+};
+
+export type TriviaOption = {
+  __typename?: 'TriviaOption';
+  option: TriviaAnswer;
+  text: Scalars['String']['output'];
+};
+
+export type TriviaPlayerScore = {
+  __typename?: 'TriviaPlayerScore';
+  category: Scalars['String']['output'];
+  score: Scalars['Int']['output'];
+};
+
+export type TriviaQuestion = {
+  __typename?: 'TriviaQuestion';
+  category: Scalars['String']['output'];
+  correctAnswer?: Maybe<TriviaAnswer>;
+  options: Array<TriviaOption>;
+  question: Scalars['String']['output'];
 };
 
 export type User = {
@@ -454,7 +586,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = {
-  GenericError: ( Omit<AppointmentError, 'code'> & { code?: Maybe<_RefType['AppointmentErrorCodes']> } & { __typename: 'AppointmentError' } ) | ( Omit<LoginError, 'code'> & { code?: Maybe<_RefType['LoginErrorCodes']> } & { __typename: 'LoginError' } ) | ( Omit<RequestPasswordResetError, 'code'> & { code?: Maybe<_RefType['RequestPasswordResetErrorCodes']> } & { __typename: 'RequestPasswordResetError' } ) | ( Omit<ResendEmailVerificationError, 'code'> & { code?: Maybe<_RefType['ResendEmailVerificationErrorCodes']> } & { __typename: 'ResendEmailVerificationError' } ) | ( Omit<ResetPasswordError, 'code'> & { code?: Maybe<_RefType['ResetPasswordErrorCodes']> } & { __typename: 'ResetPasswordError' } ) | ( Omit<SignUpError, 'code'> & { code?: Maybe<_RefType['SignUpErrorCodes']> } & { __typename: 'SignUpError' } ) | ( Omit<VerifyEmailError, 'code'> & { code?: Maybe<_RefType['VerifyEmailErrorCodes']> } & { __typename: 'VerifyEmailError' } );
+  GenericError: ( Omit<AppointmentError, 'code'> & { code?: Maybe<_RefType['AppointmentErrorCodes']> } & { __typename: 'AppointmentError' } ) | ( Omit<LoginError, 'code'> & { code?: Maybe<_RefType['LoginErrorCodes']> } & { __typename: 'LoginError' } ) | ( Omit<RequestPasswordResetError, 'code'> & { code?: Maybe<_RefType['RequestPasswordResetErrorCodes']> } & { __typename: 'RequestPasswordResetError' } ) | ( Omit<ResendEmailVerificationError, 'code'> & { code?: Maybe<_RefType['ResendEmailVerificationErrorCodes']> } & { __typename: 'ResendEmailVerificationError' } ) | ( Omit<ResetPasswordError, 'code'> & { code?: Maybe<_RefType['ResetPasswordErrorCodes']> } & { __typename: 'ResetPasswordError' } ) | ( Omit<SignUpError, 'code'> & { code?: Maybe<_RefType['SignUpErrorCodes']> } & { __typename: 'SignUpError' } ) | ( Omit<TriviaGameError, 'code'> & { code?: Maybe<_RefType['TriviaGameErrorCodes']> } & { __typename: 'TriviaGameError' } ) | ( Omit<VerifyEmailError, 'code'> & { code?: Maybe<_RefType['VerifyEmailErrorCodes']> } & { __typename: 'VerifyEmailError' } );
 };
 
 /** Mapping between all available schema types and the resolvers types */
@@ -482,6 +614,7 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>;
   OffsetPaging: OffsetPaging;
   PageInfo: ResolverTypeWrapper<PageInfo>;
+  PlayerScore: ResolverTypeWrapper<PlayerScore>;
   PriorityDirection: ResolverTypeWrapper<'ASC' | 'DESC'>;
   Query: ResolverTypeWrapper<{}>;
   RequestPasswordResetError: ResolverTypeWrapper<Omit<RequestPasswordResetError, 'code'> & { code?: Maybe<ResolversTypes['RequestPasswordResetErrorCodes']> }>;
@@ -499,7 +632,21 @@ export type ResolversTypes = {
   SignUpErrorCodes: ResolverTypeWrapper<'INVALID_PASSWORD_LENGTH' | 'MISSING_CAPITAL_LETTER' | 'MISSING_LOWERCASE_LETTER' | 'MISSING_NUMBER' | 'INVALID_PASSWORD_CHARACTER' | 'INVALID_CREDENTIALS' | 'EMAIL_VERIFIER_AUTHENTICATION_FAILED' | 'NOT_FOUND' | 'EMAIL_ERROR' | 'UNKNOWN_ERROR'>;
   SignUpPayload: ResolverTypeWrapper<Omit<SignUpPayload, 'error'> & { error?: Maybe<ResolversTypes['SignUpError']> }>;
   SortDirection: ResolverTypeWrapper<'ASC' | 'DESC'>;
+  Subscription: ResolverTypeWrapper<{}>;
   TimeSlot: ResolverTypeWrapper<TimeSlot>;
+  TriviaAnswer: ResolverTypeWrapper<'A' | 'B' | 'C' | 'D'>;
+  TriviaGame: ResolverTypeWrapper<TriviaGame>;
+  TriviaGameError: ResolverTypeWrapper<Omit<TriviaGameError, 'code'> & { code?: Maybe<ResolversTypes['TriviaGameErrorCodes']> }>;
+  TriviaGameErrorCodes: ResolverTypeWrapper<'GAME_NOT_FOUND' | 'GAME_ALREADY_EXISTS' | 'INSUFFICIENT_PERMISSIONS' | 'UNKNOWN_ERROR'>;
+  TriviaGamePayload: ResolverTypeWrapper<Omit<TriviaGamePayload, 'error'> & { error?: Maybe<ResolversTypes['TriviaGameError']> }>;
+  TriviaGameScore: ResolverTypeWrapper<TriviaGameScore>;
+  TriviaGameState: ResolverTypeWrapper<'SPLASH' | 'QUESTION' | 'ANSWER' | 'SCORE' | 'PAUSED' | 'STOPPED' | 'CLOSED'>;
+  TriviaGameUpdateForAdmin: ResolverTypeWrapper<Omit<TriviaGameUpdateForAdmin, 'question' | 'state'> & { question?: Maybe<ResolversTypes['TriviaQuestion']>, state: ResolversTypes['TriviaGameState'] }>;
+  TriviaGameUpdateForBoard: ResolverTypeWrapper<Omit<TriviaGameUpdateForBoard, 'question' | 'state'> & { question?: Maybe<ResolversTypes['TriviaQuestion']>, state: ResolversTypes['TriviaGameState'] }>;
+  TriviaGameUpdateForPlayer: ResolverTypeWrapper<Omit<TriviaGameUpdateForPlayer, 'question' | 'state'> & { question?: Maybe<ResolversTypes['TriviaQuestion']>, state: ResolversTypes['TriviaGameState'] }>;
+  TriviaOption: ResolverTypeWrapper<Omit<TriviaOption, 'option'> & { option: ResolversTypes['TriviaAnswer'] }>;
+  TriviaPlayerScore: ResolverTypeWrapper<TriviaPlayerScore>;
+  TriviaQuestion: ResolverTypeWrapper<Omit<TriviaQuestion, 'correctAnswer' | 'options'> & { correctAnswer?: Maybe<ResolversTypes['TriviaAnswer']>, options: Array<ResolversTypes['TriviaOption']> }>;
   User: ResolverTypeWrapper<User>;
   UserConnection: ResolverTypeWrapper<UserConnection>;
   UserEdge: ResolverTypeWrapper<UserEdge>;
@@ -535,6 +682,7 @@ export type ResolversParentTypes = {
   Mutation: {};
   OffsetPaging: OffsetPaging;
   PageInfo: PageInfo;
+  PlayerScore: PlayerScore;
   Query: {};
   RequestPasswordResetError: RequestPasswordResetError;
   RequestPasswordResetPayload: Omit<RequestPasswordResetPayload, 'error'> & { error?: Maybe<ResolversParentTypes['RequestPasswordResetError']> };
@@ -546,7 +694,18 @@ export type ResolversParentTypes = {
   SignUpDetails: SignUpDetails;
   SignUpError: SignUpError;
   SignUpPayload: Omit<SignUpPayload, 'error'> & { error?: Maybe<ResolversParentTypes['SignUpError']> };
+  Subscription: {};
   TimeSlot: TimeSlot;
+  TriviaGame: TriviaGame;
+  TriviaGameError: TriviaGameError;
+  TriviaGamePayload: Omit<TriviaGamePayload, 'error'> & { error?: Maybe<ResolversParentTypes['TriviaGameError']> };
+  TriviaGameScore: TriviaGameScore;
+  TriviaGameUpdateForAdmin: Omit<TriviaGameUpdateForAdmin, 'question'> & { question?: Maybe<ResolversParentTypes['TriviaQuestion']> };
+  TriviaGameUpdateForBoard: Omit<TriviaGameUpdateForBoard, 'question'> & { question?: Maybe<ResolversParentTypes['TriviaQuestion']> };
+  TriviaGameUpdateForPlayer: Omit<TriviaGameUpdateForPlayer, 'question'> & { question?: Maybe<ResolversParentTypes['TriviaQuestion']> };
+  TriviaOption: TriviaOption;
+  TriviaPlayerScore: TriviaPlayerScore;
+  TriviaQuestion: Omit<TriviaQuestion, 'options'> & { options: Array<ResolversParentTypes['TriviaOption']> };
   User: User;
   UserConnection: UserConnection;
   UserEdge: UserEdge;
@@ -606,7 +765,7 @@ export interface EmailAddressScalarConfig extends GraphQLScalarTypeConfig<Resolv
 }
 
 export type GenericErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['GenericError'] = ResolversParentTypes['GenericError']> = {
-  __resolveType?: TypeResolveFn<'AppointmentError' | 'LoginError' | 'RequestPasswordResetError' | 'ResendEmailVerificationError' | 'ResetPasswordError' | 'SignUpError' | 'VerifyEmailError', ParentType, ContextType>;
+  __resolveType?: TypeResolveFn<'AppointmentError' | 'LoginError' | 'RequestPasswordResetError' | 'ResendEmailVerificationError' | 'ResetPasswordError' | 'SignUpError' | 'TriviaGameError' | 'VerifyEmailError', ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
@@ -631,13 +790,24 @@ export type LogoutPayloadResolvers<ContextType = any, ParentType extends Resolve
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  changeMyTriviaPlayerName?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType, RequireFields<MutationchangeMyTriviaPlayerNameArgs, 'newName'>>;
+  closeTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
   createAppointment?: Resolver<ResolversTypes['AppointmentPayload'], ParentType, ContextType, RequireFields<MutationcreateAppointmentArgs, 'input'>>;
+  createTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType, RequireFields<MutationcreateTriviaGameArgs, 'gameId'>>;
   login?: Resolver<ResolversTypes['LoginPayload'], ParentType, ContextType, RequireFields<MutationloginArgs, 'input'>>;
   logout?: Resolver<ResolversTypes['LogoutPayload'], ParentType, ContextType>;
+  nextTriviaQuestion?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
+  pauseTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
   requestPasswordReset?: Resolver<ResolversTypes['RequestPasswordResetPayload'], ParentType, ContextType, RequireFields<MutationrequestPasswordResetArgs, 'email'>>;
   resendEmailVerification?: Resolver<ResolversTypes['ResendEmailVerificationPayload'], ParentType, ContextType, RequireFields<MutationresendEmailVerificationArgs, 'email'>>;
   resetPassword?: Resolver<ResolversTypes['ResetPasswordPayload'], ParentType, ContextType, RequireFields<MutationresetPasswordArgs, 'input'>>;
+  resumeTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
+  showScoreAfterQuestion?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
+  showScoreImmediately?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
   signUp?: Resolver<ResolversTypes['SignUpPayload'], ParentType, ContextType, RequireFields<MutationsignUpArgs, 'input'>>;
+  startTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType, RequireFields<MutationstartTriviaGameArgs, 'gameId'>>;
+  stopTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
+  submitTriviaAnswer?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType, RequireFields<MutationsubmitTriviaAnswerArgs, 'answer'>>;
   verifyEmail?: Resolver<ResolversTypes['VerifyEmailPayload'], ParentType, ContextType, RequireFields<MutationverifyEmailArgs, 'code' | 'email'>>;
 };
 
@@ -649,6 +819,12 @@ export type PageInfoResolvers<ContextType = any, ParentType extends ResolversPar
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PlayerScoreResolvers<ContextType = any, ParentType extends ResolversParentTypes['PlayerScore'] = ResolversParentTypes['PlayerScore']> = {
+  playerName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  score?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type PriorityDirectionResolvers = EnumResolverSignature<{ ASC?: any, DESC?: any }, ResolversTypes['PriorityDirection']>;
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
@@ -656,6 +832,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   allAvailabilityBlocks?: Resolver<Array<ResolversTypes['AvailabilityBlock']>, ParentType, ContextType>;
   availabilityBlocks?: Resolver<Array<ResolversTypes['AvailabilityBlock']>, ParentType, ContextType, RequireFields<QueryavailabilityBlocksArgs, 'bishopricMember'>>;
   availableTimeSlots?: Resolver<Array<Maybe<ResolversTypes['TimeSlot']>>, ParentType, ContextType, RequireFields<QueryavailableTimeSlotsArgs, 'bishopricMember' | 'durationInMinutes'>>;
+  currentGame?: Resolver<Maybe<ResolversTypes['TriviaGame']>, ParentType, ContextType>;
+  myTriviaScore?: Resolver<Array<ResolversTypes['TriviaPlayerScore']>, ParentType, ContextType>;
   self?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   users?: Resolver<Maybe<ResolversTypes['UserConnection']>, ParentType, ContextType, Partial<QueryusersArgs>>;
 };
@@ -718,9 +896,86 @@ export type SignUpPayloadResolvers<ContextType = any, ParentType extends Resolve
 
 export type SortDirectionResolvers = EnumResolverSignature<{ ASC?: any, DESC?: any }, ResolversTypes['SortDirection']>;
 
+export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
+  joinTriviaGameAsAdmin?: SubscriptionResolver<ResolversTypes['TriviaGameUpdateForAdmin'], "joinTriviaGameAsAdmin", ParentType, ContextType>;
+  joinTriviaGameAsBoard?: SubscriptionResolver<ResolversTypes['TriviaGameUpdateForBoard'], "joinTriviaGameAsBoard", ParentType, ContextType>;
+  joinTriviaGameAsPlayer?: SubscriptionResolver<ResolversTypes['TriviaGameUpdateForPlayer'], "joinTriviaGameAsPlayer", ParentType, ContextType>;
+};
+
 export type TimeSlotResolvers<ContextType = any, ParentType extends ResolversParentTypes['TimeSlot'] = ResolversParentTypes['TimeSlot']> = {
   end?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   start?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TriviaAnswerResolvers = EnumResolverSignature<{ A?: any, B?: any, C?: any, D?: any }, ResolversTypes['TriviaAnswer']>;
+
+export type TriviaGameResolvers<ContextType = any, ParentType extends ResolversParentTypes['TriviaGame'] = ResolversParentTypes['TriviaGame']> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TriviaGameErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['TriviaGameError'] = ResolversParentTypes['TriviaGameError']> = {
+  code?: Resolver<Maybe<ResolversTypes['TriviaGameErrorCodes']>, ParentType, ContextType>;
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TriviaGameErrorCodesResolvers = EnumResolverSignature<{ GAME_ALREADY_EXISTS?: any, GAME_NOT_FOUND?: any, INSUFFICIENT_PERMISSIONS?: any, UNKNOWN_ERROR?: any }, ResolversTypes['TriviaGameErrorCodes']>;
+
+export type TriviaGamePayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['TriviaGamePayload'] = ResolversParentTypes['TriviaGamePayload']> = {
+  error?: Resolver<Maybe<ResolversTypes['TriviaGameError']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TriviaGameScoreResolvers<ContextType = any, ParentType extends ResolversParentTypes['TriviaGameScore'] = ResolversParentTypes['TriviaGameScore']> = {
+  category?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  scores?: Resolver<Array<ResolversTypes['PlayerScore']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TriviaGameStateResolvers = EnumResolverSignature<{ ANSWER?: any, CLOSED?: any, PAUSED?: any, QUESTION?: any, SCORE?: any, SPLASH?: any, STOPPED?: any }, ResolversTypes['TriviaGameState']>;
+
+export type TriviaGameUpdateForAdminResolvers<ContextType = any, ParentType extends ResolversParentTypes['TriviaGameUpdateForAdmin'] = ResolversParentTypes['TriviaGameUpdateForAdmin']> = {
+  question?: Resolver<Maybe<ResolversTypes['TriviaQuestion']>, ParentType, ContextType>;
+  state?: Resolver<ResolversTypes['TriviaGameState'], ParentType, ContextType>;
+  time?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TriviaGameUpdateForBoardResolvers<ContextType = any, ParentType extends ResolversParentTypes['TriviaGameUpdateForBoard'] = ResolversParentTypes['TriviaGameUpdateForBoard']> = {
+  question?: Resolver<Maybe<ResolversTypes['TriviaQuestion']>, ParentType, ContextType>;
+  scores?: Resolver<Maybe<Array<ResolversTypes['TriviaGameScore']>>, ParentType, ContextType>;
+  state?: Resolver<ResolversTypes['TriviaGameState'], ParentType, ContextType>;
+  time?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TriviaGameUpdateForPlayerResolvers<ContextType = any, ParentType extends ResolversParentTypes['TriviaGameUpdateForPlayer'] = ResolversParentTypes['TriviaGameUpdateForPlayer']> = {
+  question?: Resolver<Maybe<ResolversTypes['TriviaQuestion']>, ParentType, ContextType>;
+  state?: Resolver<ResolversTypes['TriviaGameState'], ParentType, ContextType>;
+  time?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TriviaOptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['TriviaOption'] = ResolversParentTypes['TriviaOption']> = {
+  option?: Resolver<ResolversTypes['TriviaAnswer'], ParentType, ContextType>;
+  text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TriviaPlayerScoreResolvers<ContextType = any, ParentType extends ResolversParentTypes['TriviaPlayerScore'] = ResolversParentTypes['TriviaPlayerScore']> = {
+  category?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  score?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TriviaQuestionResolvers<ContextType = any, ParentType extends ResolversParentTypes['TriviaQuestion'] = ResolversParentTypes['TriviaQuestion']> = {
+  category?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  correctAnswer?: Resolver<Maybe<ResolversTypes['TriviaAnswer']>, ParentType, ContextType>;
+  options?: Resolver<Array<ResolversTypes['TriviaOption']>, ParentType, ContextType>;
+  question?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -777,6 +1032,7 @@ export type Resolvers<ContextType = any> = {
   LogoutPayload?: LogoutPayloadResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
+  PlayerScore?: PlayerScoreResolvers<ContextType>;
   PriorityDirection?: PriorityDirectionResolvers;
   Query?: QueryResolvers<ContextType>;
   RequestPasswordResetError?: RequestPasswordResetErrorResolvers<ContextType>;
@@ -792,7 +1048,21 @@ export type Resolvers<ContextType = any> = {
   SignUpErrorCodes?: SignUpErrorCodesResolvers;
   SignUpPayload?: SignUpPayloadResolvers<ContextType>;
   SortDirection?: SortDirectionResolvers;
+  Subscription?: SubscriptionResolvers<ContextType>;
   TimeSlot?: TimeSlotResolvers<ContextType>;
+  TriviaAnswer?: TriviaAnswerResolvers;
+  TriviaGame?: TriviaGameResolvers<ContextType>;
+  TriviaGameError?: TriviaGameErrorResolvers<ContextType>;
+  TriviaGameErrorCodes?: TriviaGameErrorCodesResolvers;
+  TriviaGamePayload?: TriviaGamePayloadResolvers<ContextType>;
+  TriviaGameScore?: TriviaGameScoreResolvers<ContextType>;
+  TriviaGameState?: TriviaGameStateResolvers;
+  TriviaGameUpdateForAdmin?: TriviaGameUpdateForAdminResolvers<ContextType>;
+  TriviaGameUpdateForBoard?: TriviaGameUpdateForBoardResolvers<ContextType>;
+  TriviaGameUpdateForPlayer?: TriviaGameUpdateForPlayerResolvers<ContextType>;
+  TriviaOption?: TriviaOptionResolvers<ContextType>;
+  TriviaPlayerScore?: TriviaPlayerScoreResolvers<ContextType>;
+  TriviaQuestion?: TriviaQuestionResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   UserConnection?: UserConnectionResolvers<ContextType>;
   UserEdge?: UserEdgeResolvers<ContextType>;

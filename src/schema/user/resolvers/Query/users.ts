@@ -7,12 +7,7 @@ export const users: NonNullable<QueryResolvers['users']> = async (_parent, { inp
         throw new GraphQLError("User is unauthenticated");
     }
 
-    const token = await dataSources.surrealTokenStore().getUserToken(user.sessionId);
-    if (!token) {
-        throw new GraphQLError("User is unauthenticated");
-    }
-
-    const [error, usersResult] = await safeAsync(dataSources.user().searchUsers(token, input));
+    const [error, usersResult] = await safeAsync(dataSources.user().searchUsers(input));
     if (error || !usersResult) throw new GraphQLError(error?.message || "Could not retrieve users");
 
     const [users, pageInfo] = usersResult;

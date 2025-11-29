@@ -5,16 +5,7 @@ import type { MutationResolvers } from './../../../types.generated';
 import { DateTime } from 'luxon';
 
 export const resendEmailVerification: NonNullable<MutationResolvers['resendEmailVerification']> = async (_parent, { email }, { config, dataSources }: RequestContext) => {
-    const emailVerifierToken = await dataSources.surrealTokenStore().getMachineToken("email_verifier");
-    if (!emailVerifierToken) return {
-        success: false,
-        error: {
-            code: "EMAIL_VERIFIER_AUTHENTICATION_FAILED",
-            message: "Email verifier could not authenticate to database"
-        }
-    }
-
-    const [verificationError, isEmailVerified] = await safeAsync(dataSources.authentication().isEmailVerified(emailVerifierToken, { email }));
+    const [verificationError, isEmailVerified] = await safeAsync(dataSources.authentication().isEmailVerified({ email }));
     if (verificationError) return {
         success: false,
         error: {
@@ -31,7 +22,7 @@ export const resendEmailVerification: NonNullable<MutationResolvers['resendEmail
     }
 
     let emailVerificationDetails: EmailVerificationDto;
-    const [error, emailVerificationRecord] = await safeAsync(dataSources.authentication().getEmailVerificationRecord(emailVerifierToken, { email }));
+    const [error, emailVerificationRecord] = await safeAsync(dataSources.authentication().getEmailVerificationRecord({ email }));
     if (error) return {
         success: false,
         error: {
@@ -41,7 +32,7 @@ export const resendEmailVerification: NonNullable<MutationResolvers['resendEmail
     }
 
     if (!emailVerificationRecord) {
-        const [createError, createdEmailDetails] = await safeAsync(dataSources.authentication().createEmailVerificationRecord(emailVerifierToken, { email }));
+        const [createError, createdEmailDetails] = await safeAsync(dataSources.authentication().createEmailVerificationRecord({ email }));
         if (createError) return {
             success: false,
             error: {
@@ -61,7 +52,7 @@ export const resendEmailVerification: NonNullable<MutationResolvers['resendEmail
     let verifyEmailUrl = `${config.uiUrl}/auth/verifyEmail?code=${code}&email=${encodeURIComponent(email)}`;
 
     if (isExpired) {
-        const [updateError, details] = await safeAsync(dataSources.authentication().refreshEmailVerification(emailVerifierToken, { id: emailVerificationDetails.id }));
+        const [updateError, details] = await safeAsync(dataSources.authentication().refreshEmailVerification({ id: emailVerificationDetails.id }));
         if (updateError) return {
             success: false,
             error: {

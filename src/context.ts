@@ -1,7 +1,7 @@
 import { CalendarDataSource } from "./dataSources/calendar"
 import { AppointmentDetailsDataSource } from "./dataSources/appointmentDetails"
 import { Config } from "./config"
-import { YogaInitialContext } from "graphql-yoga"
+import { createPubSub, YogaInitialContext } from "graphql-yoga"
 import { EmailerDataSource } from "./dataSources/emailer"
 import { CalendarClient } from "./clients/calendar"
 import { EmailClient } from "./clients/email"
@@ -12,14 +12,20 @@ import { AuthenticationDataSource } from "./dataSources/authentication"
 import { SurrealHttpDataSource } from "./dataSources/surrealHttp"
 import { UserDataSource } from "./dataSources/user"
 import { CookieDataSource } from "./dataSources/cookie"
-import { SurrealClient } from "./clients/surreal"
+import { SurrealUserClient } from "./clients/surrealUser"
+import { SurrealMachineClient } from "./clients/surrealMachine"
+import { TriviaClient } from "./clients/trivia"
+import { TriviaGameDataSource } from "./dataSources/triviaGame"
 
 export interface Clients {
     calendar: CalendarClient
     email: EmailClient
+    emailVerifier: SurrealMachineClient
+    passwordReset: SurrealMachineClient
+    pubsub: ReturnType<typeof createPubSub>
     redis: RedisClient
-    surreal: SurrealClient
     tokenStore: TokenStoreClient
+    trivia: TriviaClient
 }
 
 export interface RequestContext {
@@ -30,8 +36,10 @@ export interface RequestContext {
         calendar: () => CalendarDataSource
         cookie: () => CookieDataSource
         emailer: () => EmailerDataSource
+        pubsub: ReturnType<typeof createPubSub>
         surrealHttp: () => SurrealHttpDataSource
-        surrealTokenStore: () => SurrealTokenStore
+        triviaGame: () => TriviaGameDataSource
+        userTokenStore: () => SurrealTokenStore
         user: () => UserDataSource
     }
     params: YogaInitialContext['params']
@@ -41,6 +49,7 @@ export interface RequestContext {
 
 export interface UserContext {
     sessionId?: string
+    triviaGameSessionId?: string
 }
 
 type Newable<T, A extends any[] = any[]> = new (...args: A) => T;
@@ -59,15 +68,19 @@ export const buildContext = (
     config: Config,
     clients: Clients
 ) => async ({ request, params }: YogaInitialContext): Promise<RequestContext> => {
+    const surrealUserClient = new SurrealUserClient(config);
+
     const dataSources: RequestContext['dataSources'] = {
-        appointmentDetails: lazyLoad(AppointmentDetailsDataSource, clients.surreal),
-        authentication: lazyLoad(AuthenticationDataSource, clients.surreal),
+        appointmentDetails: lazyLoad(AppointmentDetailsDataSource, surrealUserClient),
+        authentication: lazyLoad(AuthenticationDataSource, surrealUserClient, clients.emailVerifier, clients.passwordReset),
         calendar: lazyLoad(CalendarDataSource, clients.calendar),
         cookie: lazyLoad(CookieDataSource, request, config),
         emailer: lazyLoad(EmailerDataSource, clients.email, config),
+        pubsub: clients.pubsub,
         surrealHttp: lazyLoad(SurrealHttpDataSource, config),
-        surrealTokenStore: lazyLoad(SurrealTokenStore, config, clients.tokenStore, clients.redis, clients.surreal),
-        user: lazyLoad(UserDataSource, clients.surreal)
+        triviaGame: lazyLoad(TriviaGameDataSource, clients.trivia),
+        userTokenStore: lazyLoad(SurrealTokenStore, clients.tokenStore, clients.redis),
+        user: lazyLoad(UserDataSource, surrealUserClient)
     };
 
     if (params.operationName === 'IntrospectionQuery') {
@@ -79,8 +92,14 @@ export const buildContext = (
         }
     }
 
-    const cookie = await dataSources.cookie().get('eb2ward-authenticated-user');
-    const userSessionId = cookie?.value;
+    const authenticatedUserCookie = await dataSources.cookie().get('eb2ward-authenticated-user');
+    const userSessionId = authenticatedUserCookie?.value;
+    if (userSessionId) {
+        const userToken = await dataSources.userTokenStore().getUserToken(userSessionId);
+        if (userToken) await surrealUserClient.authenticate(userToken);
+    }
+    const triviaGameCookie = await dataSources.cookie().get('eb2ward-trivia-game');
+    const triviaGameSessionId = triviaGameCookie?.value;
 
     return {
         config,
@@ -88,7 +107,8 @@ export const buildContext = (
         params,
         request,
         user: {
-            sessionId: userSessionId
+            sessionId: userSessionId,
+            triviaGameSessionId
         }
     }
 }

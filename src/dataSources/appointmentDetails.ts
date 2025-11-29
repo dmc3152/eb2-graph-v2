@@ -1,9 +1,9 @@
 import { StringRecordId } from "surrealdb";
-import { SurrealClient } from "../clients/surreal";
+import { SurrealUserClient } from "../clients/surrealUser";
 import { AppointmentTypeDto } from "../dtos/appointmentType";
 
 export class AppointmentDetailsDataSource {
-    constructor(private surreal: SurrealClient) { }
+    constructor(private surreal: SurrealUserClient) { }
 
     async getAllAppointmentTypes() {
         const [response] = await this.surreal.query<[AppointmentTypeDto[]]>({

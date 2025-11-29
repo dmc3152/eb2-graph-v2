@@ -63,16 +63,7 @@ export const signUp: NonNullable<MutationResolvers['signUp']> = async (_parent, 
         }
     }
 
-    const emailVerifierToken = await dataSources.surrealTokenStore().getMachineToken("email_verifier");
-    if (!emailVerifierToken) return {
-        success: false,
-        error: {
-            code: "EMAIL_VERIFIER_AUTHENTICATION_FAILED",
-            message: "Email verifier could not authenticate to database"
-        }
-    }
-
-    const [error, emailVerificationDetails] = await safeAsync(dataSources.authentication().createEmailVerificationRecord(emailVerifierToken, { email: input.email }));
+    const [error, emailVerificationDetails] = await safeAsync(dataSources.authentication().createEmailVerificationRecord({ email: input.email }));
     if (error) return {
         success: false,
         error: {

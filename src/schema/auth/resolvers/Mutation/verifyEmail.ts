@@ -4,16 +4,7 @@ import { safeAsync } from '../../../../utilities/safeAsync';
 import type { MutationResolvers } from './../../../types.generated';
 
 export const verifyEmail: NonNullable<MutationResolvers['verifyEmail']> = async (_parent, { email, code }, { dataSources }: RequestContext) => {
-    const emailVerifierToken = await dataSources.surrealTokenStore().getMachineToken("email_verifier");
-    if (!emailVerifierToken) return {
-        success: false,
-        error: {
-            code: "EMAIL_VERIFIER_AUTHENTICATION_FAILED",
-            message: "Email verifier could not authenticate to database"
-        }
-    }
-
-    const [error, emailVerificationDetails] = await safeAsync(dataSources.authentication().getEmailVerificationRecord(emailVerifierToken, { email }));
+    const [error, emailVerificationDetails] = await safeAsync(dataSources.authentication().getEmailVerificationRecord({ email }));
     if (error || !emailVerificationDetails) return {
         success: false,
         error: {
@@ -41,7 +32,7 @@ export const verifyEmail: NonNullable<MutationResolvers['verifyEmail']> = async 
         }
     }
 
-    const [updateError, updateSuccess] = await safeAsync(dataSources.authentication().verifyEmail(emailVerifierToken, { id: emailVerificationDetails.user }));
+    const [updateError, updateSuccess] = await safeAsync(dataSources.authentication().verifyEmail({ id: emailVerificationDetails.user }));
     if (updateError) return {
         success: false,
         error: {
@@ -50,7 +41,7 @@ export const verifyEmail: NonNullable<MutationResolvers['verifyEmail']> = async 
         }
     }
 
-    const [deleteError, deleteSuccess] = await safeAsync(dataSources.authentication().deleteEmailVerificationRecord(emailVerifierToken, { id: emailVerificationDetails.id }));
+    const [deleteError, deleteSuccess] = await safeAsync(dataSources.authentication().deleteEmailVerificationRecord({ id: emailVerificationDetails.id }));
     if (deleteError) return {
         success: true,
         error: {

@@ -1,19 +1,19 @@
 import { StringRecordId } from "surrealdb";
-import { SurrealClient } from "../clients/surreal";
+import { SurrealUserClient } from "../clients/surrealUser";
 import { PageInfoDto } from "../dtos/pageInfo";
 import { UserDto } from "../dtos/user";
 import { User, UserSearch } from "../schema/types.generated";
 
 export class UserDataSource {
-    constructor(private surreal: SurrealClient) { }
+    constructor(private surreal: SurrealUserClient) { }
 
-    authenticatedUser = async (token: string): Promise<User> => {
+    authenticatedUser = async (): Promise<User> => {
         const query = `SELECT * FROM ONLY $auth.id FETCH callings`;
-        const [response] = await this.surreal.query<[UserDto]>({ query, token });
+        const [response] = await this.surreal.query<[UserDto]>({ query });
         return this._mapUserDtoToUser(response);
     }
 
-    searchUsers = async (token: string, input?: UserSearch | null): Promise<[User[], PageInfoDto]> => {
+    searchUsers = async (input?: UserSearch | null): Promise<[User[], PageInfoDto]> => {
         const fieldMap = {
             FIRST_NAME: "first_name",
             LAST_NAME: "last_name",
@@ -69,17 +69,21 @@ export class UserDataSource {
             hasCalling: input?.filters?.hasCalling ?? null,
             callingIsOneOf: input?.filters?.callingIsOneOf ? input.filters.callingIsOneOf.map(record => new StringRecordId(record)) : null
         };
-        const [userDtos, _, pageInfoDto] = await this.surreal.query<[UserDto[], undefined, PageInfoDto]>({ query, params, token });
+        const [userDtos, _, pageInfoDto] = await this.surreal.query<[UserDto[], undefined, PageInfoDto]>({ query, params });
         return [userDtos.map(userDto => this._mapUserDtoToUser(userDto)), pageInfoDto];
     }
 
     private _mapUserDtoToUser = (userDto: UserDto): User => ({
         __typename: "User",
-        id: userDto.id,
+        id: userDto.id.toString(),
         firstName: userDto.first_name,
         lastName: userDto.last_name,
         email: userDto.email,
         isSiteAdmin: userDto.is_site_admin,
-        callings: userDto.callings
+        callings: userDto.callings.map(callingDto => ({
+            __typename: "Calling",
+            ...callingDto,
+            id: callingDto.id.toString(),
+        }))
     });
 }

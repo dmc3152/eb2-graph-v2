@@ -2,7 +2,7 @@ import Surreal, { ConnectionStatus } from "surrealdb";
 import { Config } from "../config";
 import { Credentials, SignUpDetails } from "../schema/types.generated";
 
-export class SurrealClient {
+export class SurrealUserClient {
     private db = new Surreal();
 
     constructor(private config: Config) { }
@@ -24,15 +24,18 @@ export class SurrealClient {
         }
     }
 
-    async query<T extends unknown[]>({ query, token, params }: { query: string, token?: string, params?: Record<string, unknown> }): Promise<{ [K in keyof T]: T[K]; }> {
+    async authenticate(token: string) {
         const db = await this.connect();
-        if (token) await db.authenticate(token);
+        await db.authenticate(token);
+    }
+
+    async query<T extends unknown[]>({ query, params }: { query: string, params?: Record<string, unknown> }): Promise<{ [K in keyof T]: T[K]; }> {
+        const db = await this.connect();
         try {
             const result = await db.query<T>(query, params);
             return result;
         }
         catch (err) { throw err }
-        finally { await db.invalidate() }
     }
 
     async signIn(variables: Credentials) {
@@ -47,22 +50,6 @@ export class SurrealClient {
             return signInResponse;
         }
         catch (err) { throw err }
-        finally { await db.invalidate() }
-    }
-
-    async signInMachine(variables: {key: string, secret: string}) {
-        const db = await this.connect();
-        try {
-            const signInResponse = await db.signin({
-                namespace: this.config.surreal.namespace,
-                database: this.config.surreal.database,
-                access: 'machine_user',
-                variables
-            });
-            return signInResponse;
-        }
-        catch (err) { throw err }
-        finally { await db.invalidate() }
     }
 
     async signUp(variables: SignUpDetails) {
@@ -77,6 +64,5 @@ export class SurrealClient {
             return signUpResponse;
         }
         catch (err) { throw err }
-        finally { await db.invalidate() }
     }
 }

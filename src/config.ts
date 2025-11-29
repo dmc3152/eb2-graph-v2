@@ -17,6 +17,7 @@ export class Config {
     machineUserSecrets: {
         emailVerifier: string
         passwordReset: string
+        triviaGame: string
     }
     uiUrl: string
 
@@ -38,7 +39,8 @@ export class Config {
         }
         this.machineUserSecrets = {
             emailVerifier: this._load("EMAIL_VERIFIER_SECRET"),
-            passwordReset: this._load("PASSWORD_RESET_SECRET")
+            passwordReset: this._load("PASSWORD_RESET_SECRET"),
+            triviaGame: this._load("TRIVIA_GAME_SECRET")
         }
         this.uiUrl = this._load("UI_URL")
     }

@@ -1,4 +1,4 @@
-import { createYoga, createSchema, Plugin, YogaInitialContext } from 'graphql-yoga'
+import { createYoga, createSchema, Plugin, YogaInitialContext, createPubSub } from 'graphql-yoga'
 import { createServer } from 'http'
 import { typeDefs } from './schema/typeDefs.generated'
 import { resolvers } from './schema/resolvers.generated'
@@ -9,16 +9,23 @@ import { RedisClient } from './clients/redis'
 import { TokenStoreClient } from './clients/tokenStore'
 import { EmailClient } from './clients/email'
 import { CalendarClient } from './clients/calendar'
-import { SurrealClient } from './clients/surreal'
+import { SurrealMachineClient } from './clients/surrealMachine'
+import { TriviaClient } from './clients/trivia'
 
 const config = new Config();
+
+const triviaSurrealClient = new SurrealMachineClient(config, { key: 'trivia_game', secret: config.machineUserSecrets.triviaGame });
+const pubsub = createPubSub();
 
 const clients: Clients = {
   calendar: new CalendarClient(),
   email: new EmailClient(config),
+  emailVerifier: new SurrealMachineClient(config, { key: 'email_verifier', secret: config.machineUserSecrets.emailVerifier }),
+  passwordReset: new SurrealMachineClient(config, { key: 'password_reset', secret: config.machineUserSecrets.passwordReset }),
+  pubsub,
   redis: new RedisClient(config),
-  surreal: new SurrealClient(config),
-  tokenStore: new TokenStoreClient()
+  tokenStore: new TokenStoreClient(),
+  trivia: new TriviaClient(triviaSurrealClient, pubsub)
 }
 
 // const finalizeRequest = async (context: RequestContext) => {
