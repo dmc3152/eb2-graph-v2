@@ -1,7 +1,7 @@
 import { RecordId } from "surrealdb";
 import { createPubSub } from "graphql-yoga";
 import { SurrealMachineClient } from "./surrealMachine";
-import { TriviaAnswer, TriviaGameState, TriviaQuestion } from "../schema/types.generated";
+import { TriviaAnswer, TriviaGameState, TriviaOption, TriviaQuestion } from "../schema/types.generated";
 
 type TriviaQuestionDto = Omit<TriviaQuestion, 'correctAnswer'> & { correct_answer: TriviaAnswer };
 
@@ -284,7 +284,7 @@ export class TriviaGame {
     }
 
     id: RecordId;
-    private readonly questionTime: number = 15000;
+    private readonly questionTime: number = 20000;
     private readonly answerTime: number = 5000;
     private readonly timeIncrement: number = 500;
     private remainingQuestionTime: number = 0;
@@ -318,11 +318,43 @@ export class TriviaGame {
             if (!randomlySkipCategory && questionsInCategory.length > 0) {
                 const randomQuestionIndex = Math.floor(Math.random() * questionsInCategory.length);
                 const [selectedQuestion] = questionsInCategory.splice(randomQuestionIndex, 1);
-                randomizedQuestions.push(selectedQuestion);
+                randomizedQuestions.push(this.randomizeAnswers(selectedQuestion));
             }
             categoryIndex = (categoryIndex + 1) % uniqueCategories.length;
         }
         return randomizedQuestions;
+    }
+
+    private randomizeAnswers = (question: TriviaQuestion): TriviaQuestion => {
+        const optionLookup: Record<number, TriviaAnswer> = {
+            0: "A",
+            1: "B",
+            2: "C",
+            3: "D"
+        };
+        const markedOptions = question.options.map(option => ({
+            ...option,
+            isCorrectAnswer: question.correctAnswer === option.option
+        }));
+
+        markedOptions.sort(() => Math.random() - 0.5);
+
+        const [answer, newOptions] = markedOptions.reduce((result, option, index) => {
+            if (index > 3) return result;
+            option.option = optionLookup[index];
+            if (option.isCorrectAnswer) {
+                result[0] = optionLookup[index];
+            }
+            result[1].push({
+                option: option.option,
+                text: option.text
+            });
+            return result;
+        }, ["A", []] as [TriviaAnswer, TriviaOption[]]);
+
+        question.correctAnswer = answer;
+        question.options = newOptions;
+        return question;
     }
 
     serialize = () => {
