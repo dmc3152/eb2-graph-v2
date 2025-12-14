@@ -1,5 +1,7 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { AvailabilityBlockMapper } from './calendarEvent/schema.mappers';
+import { CallingMapper } from './calling/schema.mappers';
+import { UserMapper } from './user/schema.mappers';
 export type Maybe<T> = T | null | undefined;
 export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -79,8 +81,30 @@ export type AvailabilityBlockavailableSlotArgs = {
 
 export type Calling = {
   __typename?: 'Calling';
+  assignedTo: Array<User>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+};
+
+export type CallingConnection = {
+  __typename?: 'CallingConnection';
+  edges: Array<CallingEdge>;
+  pageInfo: PageInfo;
+};
+
+export type CallingEdge = {
+  __typename?: 'CallingEdge';
+  node: Calling;
+};
+
+export type CallingFilters = {
+  isAssigned?: InputMaybe<Scalars['Boolean']['input']>;
+  nameContains?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CallingSearch = {
+  filters?: InputMaybe<CallingFilters>;
+  paging?: InputMaybe<OffsetPaging>;
 };
 
 export type Credentials = {
@@ -223,6 +247,7 @@ export type Query = {
   allAvailabilityBlocks: Array<AvailabilityBlock>;
   availabilityBlocks: Array<AvailabilityBlock>;
   availableTimeSlots: Array<Maybe<TimeSlot>>;
+  callings?: Maybe<CallingConnection>;
   currentGame?: Maybe<TriviaGame>;
   myTriviaScore: Array<TriviaPlayerScore>;
   self?: Maybe<User>;
@@ -238,6 +263,11 @@ export type QueryavailabilityBlocksArgs = {
 export type QueryavailableTimeSlotsArgs = {
   bishopricMember: Scalars['ID']['input'];
   durationInMinutes: Scalars['Int']['input'];
+};
+
+
+export type QuerycallingsArgs = {
+  input?: InputMaybe<CallingSearch>;
 };
 
 
@@ -602,14 +632,18 @@ export type ResolversTypes = {
   AppointmentType: ResolverTypeWrapper<AppointmentType>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   AvailabilityBlock: ResolverTypeWrapper<AvailabilityBlockMapper>;
-  Calling: ResolverTypeWrapper<Calling>;
+  Calling: ResolverTypeWrapper<CallingMapper>;
+  CallingConnection: ResolverTypeWrapper<Omit<CallingConnection, 'edges'> & { edges: Array<ResolversTypes['CallingEdge']> }>;
+  CallingEdge: ResolverTypeWrapper<Omit<CallingEdge, 'node'> & { node: ResolversTypes['Calling'] }>;
+  CallingFilters: CallingFilters;
+  CallingSearch: CallingSearch;
   Credentials: Credentials;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   EmailAddress: ResolverTypeWrapper<Scalars['EmailAddress']['output']>;
   GenericError: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['GenericError']>;
   LoginError: ResolverTypeWrapper<Omit<LoginError, 'code'> & { code?: Maybe<ResolversTypes['LoginErrorCodes']> }>;
   LoginErrorCodes: ResolverTypeWrapper<'USER_NOT_FOUND' | 'INVALID_CREDENTIALS' | 'UNKNOWN_ERROR'>;
-  LoginPayload: ResolverTypeWrapper<Omit<LoginPayload, 'error'> & { error?: Maybe<ResolversTypes['LoginError']> }>;
+  LoginPayload: ResolverTypeWrapper<Omit<LoginPayload, 'error' | 'user'> & { error?: Maybe<ResolversTypes['LoginError']>, user?: Maybe<ResolversTypes['User']> }>;
   LogoutPayload: ResolverTypeWrapper<LogoutPayload>;
   Mutation: ResolverTypeWrapper<{}>;
   OffsetPaging: OffsetPaging;
@@ -647,9 +681,9 @@ export type ResolversTypes = {
   TriviaOption: ResolverTypeWrapper<Omit<TriviaOption, 'option'> & { option: ResolversTypes['TriviaAnswer'] }>;
   TriviaPlayerScore: ResolverTypeWrapper<TriviaPlayerScore>;
   TriviaQuestion: ResolverTypeWrapper<Omit<TriviaQuestion, 'correctAnswer' | 'options'> & { correctAnswer?: Maybe<ResolversTypes['TriviaAnswer']>, options: Array<ResolversTypes['TriviaOption']> }>;
-  User: ResolverTypeWrapper<User>;
-  UserConnection: ResolverTypeWrapper<UserConnection>;
-  UserEdge: ResolverTypeWrapper<UserEdge>;
+  User: ResolverTypeWrapper<UserMapper>;
+  UserConnection: ResolverTypeWrapper<Omit<UserConnection, 'edges'> & { edges: Array<ResolversTypes['UserEdge']> }>;
+  UserEdge: ResolverTypeWrapper<Omit<UserEdge, 'node'> & { node: ResolversTypes['User'] }>;
   UserFilters: UserFilters;
   UserSearch: UserSearch;
   UserSortField: ResolverTypeWrapper<'EMAIL' | 'FIRST_NAME' | 'LAST_NAME' | 'IS_EMAIL_VERIFIED' | 'IS_SITE_ADMIN'>;
@@ -671,13 +705,17 @@ export type ResolversParentTypes = {
   AppointmentType: AppointmentType;
   Int: Scalars['Int']['output'];
   AvailabilityBlock: AvailabilityBlockMapper;
-  Calling: Calling;
+  Calling: CallingMapper;
+  CallingConnection: Omit<CallingConnection, 'edges'> & { edges: Array<ResolversParentTypes['CallingEdge']> };
+  CallingEdge: Omit<CallingEdge, 'node'> & { node: ResolversParentTypes['Calling'] };
+  CallingFilters: CallingFilters;
+  CallingSearch: CallingSearch;
   Credentials: Credentials;
   DateTime: Scalars['DateTime']['output'];
   EmailAddress: Scalars['EmailAddress']['output'];
   GenericError: ResolversInterfaceTypes<ResolversParentTypes>['GenericError'];
   LoginError: LoginError;
-  LoginPayload: Omit<LoginPayload, 'error'> & { error?: Maybe<ResolversParentTypes['LoginError']> };
+  LoginPayload: Omit<LoginPayload, 'error' | 'user'> & { error?: Maybe<ResolversParentTypes['LoginError']>, user?: Maybe<ResolversParentTypes['User']> };
   LogoutPayload: LogoutPayload;
   Mutation: {};
   OffsetPaging: OffsetPaging;
@@ -706,9 +744,9 @@ export type ResolversParentTypes = {
   TriviaOption: TriviaOption;
   TriviaPlayerScore: TriviaPlayerScore;
   TriviaQuestion: Omit<TriviaQuestion, 'options'> & { options: Array<ResolversParentTypes['TriviaOption']> };
-  User: User;
-  UserConnection: UserConnection;
-  UserEdge: UserEdge;
+  User: UserMapper;
+  UserConnection: Omit<UserConnection, 'edges'> & { edges: Array<ResolversParentTypes['UserEdge']> };
+  UserEdge: Omit<UserEdge, 'node'> & { node: ResolversParentTypes['User'] };
   UserFilters: UserFilters;
   UserSearch: UserSearch;
   UserSorting: UserSorting;
@@ -751,8 +789,20 @@ export type AvailabilityBlockResolvers<ContextType = any, ParentType extends Res
 };
 
 export type CallingResolvers<ContextType = any, ParentType extends ResolversParentTypes['Calling'] = ResolversParentTypes['Calling']> = {
+  assignedTo?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CallingConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['CallingConnection'] = ResolversParentTypes['CallingConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['CallingEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CallingEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['CallingEdge'] = ResolversParentTypes['CallingEdge']> = {
+  node?: Resolver<ResolversTypes['Calling'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -832,6 +882,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   allAvailabilityBlocks?: Resolver<Array<ResolversTypes['AvailabilityBlock']>, ParentType, ContextType>;
   availabilityBlocks?: Resolver<Array<ResolversTypes['AvailabilityBlock']>, ParentType, ContextType, RequireFields<QueryavailabilityBlocksArgs, 'bishopricMember'>>;
   availableTimeSlots?: Resolver<Array<Maybe<ResolversTypes['TimeSlot']>>, ParentType, ContextType, RequireFields<QueryavailableTimeSlotsArgs, 'bishopricMember' | 'durationInMinutes'>>;
+  callings?: Resolver<Maybe<ResolversTypes['CallingConnection']>, ParentType, ContextType, Partial<QuerycallingsArgs>>;
   currentGame?: Resolver<Maybe<ResolversTypes['TriviaGame']>, ParentType, ContextType>;
   myTriviaScore?: Resolver<Array<ResolversTypes['TriviaPlayerScore']>, ParentType, ContextType>;
   self?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
@@ -1023,6 +1074,8 @@ export type Resolvers<ContextType = any> = {
   AppointmentType?: AppointmentTypeResolvers<ContextType>;
   AvailabilityBlock?: AvailabilityBlockResolvers<ContextType>;
   Calling?: CallingResolvers<ContextType>;
+  CallingConnection?: CallingConnectionResolvers<ContextType>;
+  CallingEdge?: CallingEdgeResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
   EmailAddress?: GraphQLScalarType;
   GenericError?: GenericErrorResolvers<ContextType>;

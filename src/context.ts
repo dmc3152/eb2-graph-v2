@@ -16,6 +16,7 @@ import { SurrealUserClient } from "./clients/surrealUser"
 import { SurrealMachineClient } from "./clients/surrealMachine"
 import { TriviaClient } from "./clients/trivia"
 import { TriviaGameDataSource } from "./dataSources/triviaGame"
+import { CallingDataSource } from "./dataSources/calling"
 
 export interface Clients {
     calendar: CalendarClient
@@ -34,6 +35,7 @@ export interface RequestContext {
         appointmentDetails: () => AppointmentDetailsDataSource
         authentication: () => AuthenticationDataSource
         calendar: () => CalendarDataSource
+        calling: () => CallingDataSource
         cookie: () => CookieDataSource
         emailer: () => EmailerDataSource
         pubsub: ReturnType<typeof createPubSub>
@@ -74,6 +76,7 @@ export const buildContext = (
         appointmentDetails: lazyLoad(AppointmentDetailsDataSource, surrealUserClient),
         authentication: lazyLoad(AuthenticationDataSource, surrealUserClient, clients.emailVerifier, clients.passwordReset),
         calendar: lazyLoad(CalendarDataSource, clients.calendar),
+        calling: lazyLoad(CallingDataSource, surrealUserClient),
         cookie: lazyLoad(CookieDataSource, request, config),
         emailer: lazyLoad(EmailerDataSource, clients.email, config),
         pubsub: clients.pubsub,

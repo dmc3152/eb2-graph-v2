@@ -1,8 +1,8 @@
-import { BishopricMember, PriorityDirection } from "../types.generated"
+import { PriorityDirection } from "../types.generated"
 
 export interface AvailabilityBlockMapper {
   start: string | null
   end: string | null
-  bishopricMember: BishopricMember
+  bishopricMember: string | null
   priorityDirection: PriorityDirection
 }

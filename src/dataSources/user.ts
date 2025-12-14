@@ -3,17 +3,18 @@ import { SurrealUserClient } from "../clients/surrealUser";
 import { PageInfoDto } from "../dtos/pageInfo";
 import { UserDto } from "../dtos/user";
 import { User, UserSearch } from "../schema/types.generated";
+import { UserMapper } from "../schema/user/schema.mappers";
 
 export class UserDataSource {
     constructor(private surreal: SurrealUserClient) { }
 
-    authenticatedUser = async (): Promise<User> => {
+    authenticatedUser = async (): Promise<UserMapper> => {
         const query = `SELECT * FROM ONLY $auth.id FETCH callings`;
         const [response] = await this.surreal.query<[UserDto]>({ query });
         return this._mapUserDtoToUser(response);
     }
 
-    searchUsers = async (input?: UserSearch | null): Promise<[User[], PageInfoDto]> => {
+    searchUsers = async (input?: UserSearch | null): Promise<[UserMapper[], PageInfoDto]> => {
         const fieldMap = {
             FIRST_NAME: "first_name",
             LAST_NAME: "last_name",
@@ -73,7 +74,7 @@ export class UserDataSource {
         return [userDtos.map(userDto => this._mapUserDtoToUser(userDto)), pageInfoDto];
     }
 
-    private _mapUserDtoToUser = (userDto: UserDto): User => ({
+    private _mapUserDtoToUser = (userDto: UserDto): UserMapper => ({
         __typename: "User",
         id: userDto.id.toString(),
         firstName: userDto.first_name,
@@ -86,4 +87,15 @@ export class UserDataSource {
             id: callingDto.id.toString(),
         }))
     });
+
+    async getUsersCallingIsAssignedTo(callingId: string): Promise<UserMapper[]> {
+        const query = `
+            SELECT * FROM user
+            WHERE array::intersect(callings, [$callingId])
+            FETCH callings;
+        `;
+        const params = { callingId: new StringRecordId(callingId) };
+        const [userDtos] = await this.surreal.query<[UserDto[]]>({ query, params });
+        return userDtos.map(userDto => this._mapUserDtoToUser(userDto));
+    }
 }

@@ -1,4 +1,28 @@
+extend type Query {
+  callings(input: CallingSearch): CallingConnection
+}
+
 type Calling {
     id: ID!
     name: String!
+    assignedTo: [User!]!
+}
+
+input CallingSearch {
+  paging: OffsetPaging
+  filters: CallingFilters
+}
+
+input CallingFilters {
+  nameContains: String
+  isAssigned: Boolean
+}
+
+type CallingConnection {
+  edges: [CallingEdge!]!
+  pageInfo: PageInfo!
+}
+
+type CallingEdge {
+  node: Calling!
 }

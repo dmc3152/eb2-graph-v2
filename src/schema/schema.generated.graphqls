@@ -47,8 +47,28 @@ type AvailabilityBlock {
 }
 
 type Calling {
+  assignedTo: [User!]!
   id: ID!
   name: String!
+}
+
+type CallingConnection {
+  edges: [CallingEdge!]!
+  pageInfo: PageInfo!
+}
+
+type CallingEdge {
+  node: Calling!
+}
+
+input CallingFilters {
+  isAssigned: Boolean
+  nameContains: String
+}
+
+input CallingSearch {
+  filters: CallingFilters
+  paging: OffsetPaging
 }
 
 input Credentials {
@@ -134,6 +154,7 @@ type Query {
   allAvailabilityBlocks: [AvailabilityBlock!]!
   availabilityBlocks(bishopricMember: ID!): [AvailabilityBlock!]!
   availableTimeSlots(bishopricMember: ID!, durationInMinutes: Int!): [TimeSlot]!
+  callings(input: CallingSearch): CallingConnection
   currentGame: TriviaGame
   myTriviaScore: [TriviaPlayerScore!]!
   self: User
