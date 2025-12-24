@@ -110,7 +110,9 @@ type Mutation {
   changeMyTriviaPlayerName(newName: String!): TriviaGamePayload!
   closeTriviaGame: TriviaGamePayload!
   createAppointment(input: AppointmentDetails!): AppointmentPayload!
+  createPermission(input: PermissionCreate!): PermissionPayload!
   createTriviaGame(gameId: ID!): TriviaGamePayload!
+  deletePermission(id: ID!): PermissionDeletePayload!
   login(input: Credentials!): LoginPayload!
   logout: LogoutPayload!
   nextTriviaQuestion: TriviaGamePayload!
@@ -146,19 +148,72 @@ type Permission {
   name: String!
 }
 
+type PermissionAssociateCallingsError {
+  code: PermissionAssociateCallingsErrorCode!
+  message: String!
+}
+
+enum PermissionAssociateCallingsErrorCode {
+  CALLING_NOT_FOUND
+  UNEXPECTED_ERROR
+}
+
+type PermissionAssociateCallingsPayload {
+  callings: [Calling!]!
+  error: PermissionAssociateCallingsError
+  success: Boolean!
+}
+
 type PermissionConnection {
   edges: [PermissionEdge!]!
   pageInfo: PageInfo!
+}
+
+input PermissionCreate {
+  callings: [ID!]
+  name: String!
+}
+
+type PermissionDeleteError {
+  code: PermissionDeleteErrorCode!
+  message: String!
+}
+
+enum PermissionDeleteErrorCode {
+  PERMISSION_NOT_FOUND
+  UNEXPECTED_ERROR
+}
+
+type PermissionDeletePayload {
+  error: PermissionDeleteError
+  success: Boolean!
 }
 
 type PermissionEdge {
   node: Permission!
 }
 
+type PermissionError {
+  code: PermissionErrorCode!
+  message: String!
+}
+
+enum PermissionErrorCode {
+  INVALID_PERMISSION_NAME
+  PERMISSION_ALREADY_EXISTS
+  UNEXPECTED_ERROR
+}
+
 input PermissionFilters {
   callingIsNotOneOf: [ID!]
   callingIsOneOf: [ID!]
   nameContains: String
+}
+
+type PermissionPayload {
+  error: PermissionError
+  permission: Permission
+  success: Boolean!
 }
 
 input PermissionSearch {

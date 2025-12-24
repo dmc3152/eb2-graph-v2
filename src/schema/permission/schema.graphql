@@ -2,6 +2,16 @@ extend type Query {
   permissions(input: PermissionSearch): PermissionConnection
 }
 
+extend type Mutation {
+  createPermission(input: PermissionCreate!): PermissionPayload!
+  deletePermission(id: ID!): PermissionDeletePayload!
+}
+
+input PermissionCreate {
+  name: String!
+  callings: [ID!]
+}
+
 type Permission {
   id: ID!
   name: String!
@@ -26,4 +36,52 @@ type PermissionConnection {
 
 type PermissionEdge {
   node: Permission!
+}
+
+type PermissionPayload {
+  permission: Permission
+  success: Boolean!
+  error: PermissionError
+}
+
+type PermissionError {
+  code: PermissionErrorCode!
+  message: String!
+}
+
+enum PermissionErrorCode {
+  PERMISSION_ALREADY_EXISTS
+  INVALID_PERMISSION_NAME
+  UNEXPECTED_ERROR
+}
+
+type PermissionDeletePayload {
+  success: Boolean!
+  error: PermissionDeleteError
+}
+
+type PermissionDeleteError {
+  code: PermissionDeleteErrorCode!
+  message: String!
+}
+
+enum PermissionDeleteErrorCode {
+  PERMISSION_NOT_FOUND
+  UNEXPECTED_ERROR
+}
+
+type PermissionAssociateCallingsPayload {
+  callings: [Calling!]!
+  success: Boolean!
+  error: PermissionAssociateCallingsError
+}
+
+type PermissionAssociateCallingsError {
+  code: PermissionAssociateCallingsErrorCode!
+  message: String!
+}
+
+enum PermissionAssociateCallingsErrorCode {
+  CALLING_NOT_FOUND
+  UNEXPECTED_ERROR
 }

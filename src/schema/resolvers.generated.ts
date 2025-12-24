@@ -13,7 +13,9 @@ import    { users as Query_users } from './user/resolvers/Query/users';
 import    { changeMyTriviaPlayerName as Mutation_changeMyTriviaPlayerName } from './trivia/resolvers/Mutation/changeMyTriviaPlayerName';
 import    { closeTriviaGame as Mutation_closeTriviaGame } from './trivia/resolvers/Mutation/closeTriviaGame';
 import    { createAppointment as Mutation_createAppointment } from './calendarEvent/resolvers/Mutation/createAppointment';
+import    { createPermission as Mutation_createPermission } from './permission/resolvers/Mutation/createPermission';
 import    { createTriviaGame as Mutation_createTriviaGame } from './trivia/resolvers/Mutation/createTriviaGame';
+import    { deletePermission as Mutation_deletePermission } from './permission/resolvers/Mutation/deletePermission';
 import    { login as Mutation_login } from './auth/resolvers/Mutation/login';
 import    { logout as Mutation_logout } from './auth/resolvers/Mutation/logout';
 import    { nextTriviaQuestion as Mutation_nextTriviaQuestion } from './trivia/resolvers/Mutation/nextTriviaQuestion';
@@ -44,8 +46,14 @@ import    { LoginPayload } from './auth/resolvers/LoginPayload';
 import    { LogoutPayload } from './auth/resolvers/LogoutPayload';
 import    { PageInfo } from './base/resolvers/PageInfo';
 import    { Permission } from './permission/resolvers/Permission';
+import    { PermissionAssociateCallingsError } from './permission/resolvers/PermissionAssociateCallingsError';
+import    { PermissionAssociateCallingsPayload } from './permission/resolvers/PermissionAssociateCallingsPayload';
 import    { PermissionConnection } from './permission/resolvers/PermissionConnection';
+import    { PermissionDeleteError } from './permission/resolvers/PermissionDeleteError';
+import    { PermissionDeletePayload } from './permission/resolvers/PermissionDeletePayload';
 import    { PermissionEdge } from './permission/resolvers/PermissionEdge';
+import    { PermissionError } from './permission/resolvers/PermissionError';
+import    { PermissionPayload } from './permission/resolvers/PermissionPayload';
 import    { PlayerScore } from './trivia/resolvers/PlayerScore';
 import    { RequestPasswordResetError } from './auth/resolvers/RequestPasswordResetError';
 import    { RequestPasswordResetPayload } from './auth/resolvers/RequestPasswordResetPayload';
@@ -75,7 +83,7 @@ import    { GenericError } from './calendarEvent/resolvers/GenericError';
 import    { DateTimeResolver,EmailAddressResolver } from 'graphql-scalars';
     export const resolvers: Resolvers = {
       Query: { allAppointmentTypes: Query_allAppointmentTypes,allAvailabilityBlocks: Query_allAvailabilityBlocks,availabilityBlocks: Query_availabilityBlocks,availableTimeSlots: Query_availableTimeSlots,callings: Query_callings,currentGame: Query_currentGame,myTriviaScore: Query_myTriviaScore,permissions: Query_permissions,self: Query_self,users: Query_users },
-      Mutation: { changeMyTriviaPlayerName: Mutation_changeMyTriviaPlayerName,closeTriviaGame: Mutation_closeTriviaGame,createAppointment: Mutation_createAppointment,createTriviaGame: Mutation_createTriviaGame,login: Mutation_login,logout: Mutation_logout,nextTriviaQuestion: Mutation_nextTriviaQuestion,pauseTriviaGame: Mutation_pauseTriviaGame,requestPasswordReset: Mutation_requestPasswordReset,resendEmailVerification: Mutation_resendEmailVerification,resetPassword: Mutation_resetPassword,resumeTriviaGame: Mutation_resumeTriviaGame,showScoreAfterQuestion: Mutation_showScoreAfterQuestion,showScoreImmediately: Mutation_showScoreImmediately,signUp: Mutation_signUp,startTriviaGame: Mutation_startTriviaGame,stopTriviaGame: Mutation_stopTriviaGame,submitTriviaAnswer: Mutation_submitTriviaAnswer,verifyEmail: Mutation_verifyEmail },
+      Mutation: { changeMyTriviaPlayerName: Mutation_changeMyTriviaPlayerName,closeTriviaGame: Mutation_closeTriviaGame,createAppointment: Mutation_createAppointment,createPermission: Mutation_createPermission,createTriviaGame: Mutation_createTriviaGame,deletePermission: Mutation_deletePermission,login: Mutation_login,logout: Mutation_logout,nextTriviaQuestion: Mutation_nextTriviaQuestion,pauseTriviaGame: Mutation_pauseTriviaGame,requestPasswordReset: Mutation_requestPasswordReset,resendEmailVerification: Mutation_resendEmailVerification,resetPassword: Mutation_resetPassword,resumeTriviaGame: Mutation_resumeTriviaGame,showScoreAfterQuestion: Mutation_showScoreAfterQuestion,showScoreImmediately: Mutation_showScoreImmediately,signUp: Mutation_signUp,startTriviaGame: Mutation_startTriviaGame,stopTriviaGame: Mutation_stopTriviaGame,submitTriviaAnswer: Mutation_submitTriviaAnswer,verifyEmail: Mutation_verifyEmail },
       Subscription: { joinTriviaGameAsAdmin: Subscription_joinTriviaGameAsAdmin,joinTriviaGameAsBoard: Subscription_joinTriviaGameAsBoard,joinTriviaGameAsPlayer: Subscription_joinTriviaGameAsPlayer },
       AppointmentError: AppointmentError,
 AppointmentPayload: AppointmentPayload,
@@ -89,8 +97,14 @@ LoginPayload: LoginPayload,
 LogoutPayload: LogoutPayload,
 PageInfo: PageInfo,
 Permission: Permission,
+PermissionAssociateCallingsError: PermissionAssociateCallingsError,
+PermissionAssociateCallingsPayload: PermissionAssociateCallingsPayload,
 PermissionConnection: PermissionConnection,
+PermissionDeleteError: PermissionDeleteError,
+PermissionDeletePayload: PermissionDeletePayload,
 PermissionEdge: PermissionEdge,
+PermissionError: PermissionError,
+PermissionPayload: PermissionPayload,
 PlayerScore: PlayerScore,
 RequestPasswordResetError: RequestPasswordResetError,
 RequestPasswordResetPayload: RequestPasswordResetPayload,

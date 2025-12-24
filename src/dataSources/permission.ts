@@ -1,9 +1,10 @@
 import { StringRecordId } from "surrealdb";
 import { SurrealUserClient } from "../clients/surrealUser";
-import { Permission, PermissionSearch } from "../schema/types.generated";
+import { Permission, PermissionCreate, PermissionDeletePayload, PermissionErrorCode, PermissionSearch } from "../schema/types.generated";
 import { PermissionDto } from "../dtos/permission";
 import { PageInfoDto } from "../dtos/pageInfo";
-import { PermissionMapper } from "../schema/permission/schema.mappers";
+import { PermissionAssociateCallingsPayloadMapper, PermissionMapper, PermissionPayloadMapper } from "../schema/permission/schema.mappers";
+import { safeAsync } from "../utilities/safeAsync";
 
 export class PermissionDataSource {
     constructor(private surreal: SurrealUserClient) { }
@@ -56,6 +57,131 @@ export class PermissionDataSource {
         const params = { callingId: new StringRecordId(callingId) };
         const [permissionDtos] = await this.surreal.query<[PermissionDto[]]>({ query, params });
         return permissionDtos.map(permissionDto => this._mapPermissionDtoToPermission(permissionDto));
+    }
+
+    async createPermission({ name, callings }: PermissionCreate): Promise<PermissionPayloadMapper> {
+        const safeName = name.trim();
+        if (safeName.length === 0) {
+            return {
+                __typename: "PermissionPayload",
+                permission: null,
+                success: false,
+                error: {
+                    code: "INVALID_PERMISSION_NAME",
+                    message: "Permission name cannot be empty"
+                }
+            }
+        }
+
+        if (safeName.match(/[^a-zA-Z0-9 _-]/)) {
+            return {
+                __typename: "PermissionPayload",
+                permission: null,
+                success: false,
+                error: {
+                    code: "INVALID_PERMISSION_NAME",
+                    message: "Permission name contains invalid characters"
+                }
+            }
+        }
+
+        const id = `permission:${safeName.toLowerCase().replace(/\s+/g, '_')}`;
+        const callingIds = callings?.map(id => new StringRecordId(id)) ?? [];
+        const query = `
+            CREATE ONLY permission
+            CONTENT {
+                id: $id,
+                name: $name,
+                callings: $callings
+            };
+
+            SELECT *
+            FROM ONLY $id
+            FETCH callings;
+        `;
+        const params = { id: new StringRecordId(id), name: safeName, callings: callingIds };
+        const [error, result] = await safeAsync(this.surreal.query<[any, PermissionDto]>({ query, params }));
+        if (error) {
+            const code: PermissionErrorCode = error.message.includes("already exists") ? "PERMISSION_ALREADY_EXISTS" : "UNEXPECTED_ERROR";
+            return {
+                __typename: "PermissionPayload",
+                permission: null,
+                success: false,
+                error: {
+                    code: code,
+                    message: error.message
+                }
+            }
+        }
+        const [_, permissionDto] = result;
+        return {
+            __typename: "PermissionPayload",
+            permission: this._mapPermissionDtoToPermission(permissionDto),
+            success: true,
+            error: null
+        };
+    }
+
+    async deletePermission(id: string): Promise<PermissionDeletePayload> {
+        const query = `
+            DELETE ONLY $id RETURN BEFORE;
+        `;
+        const params = { id: new StringRecordId(id) };
+        const [error] = await safeAsync(this.surreal.query<[PermissionDto]>({ query, params }));
+        if (error?.message.includes("Expected a single result")) {
+            return {
+                __typename: "PermissionDeletePayload",
+                success: false,
+                error: {
+                    code: "PERMISSION_NOT_FOUND",
+                    message: "The specified permission does not exist"
+                }
+            }
+        }
+        return {
+            __typename: "PermissionDeletePayload",
+            success: !error,
+            error: error ? {
+                code: "UNEXPECTED_ERROR",
+                message: error.message
+            } : null
+        };
+    }
+
+    async addCallingsToPermission(permissionId: string, callingIds: string[]): Promise<PermissionAssociateCallingsPayloadMapper> {
+        const query = `
+            UPDATE ONLY permission
+            SET callings += $callingIds
+            WHERE id = $permissionId
+            FETCH callings;
+        `;
+        const params = {
+            permissionId: new StringRecordId(permissionId),
+            callingIds: callingIds.map(id => new StringRecordId(id))
+        };
+        const [error, result] = await safeAsync(this.surreal.query<[PermissionDto]>({ query, params }));
+        if (error) {
+            return {
+                __typename: "PermissionAssociateCallingsPayload",
+                callings: [],
+                success: false,
+                error: {
+                    code: "UNEXPECTED_ERROR",
+                    message: error.message
+                }
+            }
+        }
+        const [permissionDto] = result;
+        return {
+            __typename: "PermissionAssociateCallingsPayload",
+            callings: permissionDto.callings.map(callingDto => ({
+                __typename: "Calling",
+                ...callingDto,
+                id: callingDto.id.toString(),
+            })),
+            success: true,
+            error: null
+        };
     }
 
     private _mapPermissionDtoToPermission = (permissionDto: PermissionDto): PermissionMapper => ({
