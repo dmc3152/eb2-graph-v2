@@ -1,0 +1,29 @@
+extend type Query {
+  permissions(input: PermissionSearch): PermissionConnection
+}
+
+type Permission {
+  id: ID!
+  name: String!
+  callings: [Calling!]!
+}
+
+input PermissionSearch {
+  paging: OffsetPaging
+  filters: PermissionFilters
+}
+
+input PermissionFilters {
+  nameContains: String
+  callingIsOneOf: [ID!]
+  callingIsNotOneOf: [ID!]
+}
+
+type PermissionConnection {
+  edges: [PermissionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PermissionEdge {
+  node: Permission!
+}

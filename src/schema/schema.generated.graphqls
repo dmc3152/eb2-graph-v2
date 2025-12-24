@@ -50,6 +50,7 @@ type Calling {
   assignedTo: [User!]!
   id: ID!
   name: String!
+  permissions: [Permission!]!
 }
 
 type CallingConnection {
@@ -139,6 +140,32 @@ type PageInfo {
   totalCount: Int!
 }
 
+type Permission {
+  callings: [Calling!]!
+  id: ID!
+  name: String!
+}
+
+type PermissionConnection {
+  edges: [PermissionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PermissionEdge {
+  node: Permission!
+}
+
+input PermissionFilters {
+  callingIsNotOneOf: [ID!]
+  callingIsOneOf: [ID!]
+  nameContains: String
+}
+
+input PermissionSearch {
+  filters: PermissionFilters
+  paging: OffsetPaging
+}
+
 type PlayerScore {
   playerName: String!
   score: Int!
@@ -157,6 +184,7 @@ type Query {
   callings(input: CallingSearch): CallingConnection
   currentGame: TriviaGame
   myTriviaScore: [TriviaPlayerScore!]!
+  permissions(input: PermissionSearch): PermissionConnection
   self: User
   users(input: UserSearch): UserConnection
 }

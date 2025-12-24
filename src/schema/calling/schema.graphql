@@ -3,9 +3,10 @@ extend type Query {
 }
 
 type Calling {
-    id: ID!
-    name: String!
-    assignedTo: [User!]!
+  id: ID!
+  name: String!
+  assignedTo: [User!]!
+  permissions: [Permission!]!
 }
 
 input CallingSearch {

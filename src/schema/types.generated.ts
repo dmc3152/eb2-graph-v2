@@ -1,6 +1,7 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { AvailabilityBlockMapper } from './calendarEvent/schema.mappers';
 import { CallingMapper } from './calling/schema.mappers';
+import { PermissionMapper } from './permission/schema.mappers';
 import { UserMapper } from './user/schema.mappers';
 export type Maybe<T> = T | null | undefined;
 export type InputMaybe<T> = T | null | undefined;
@@ -84,6 +85,7 @@ export type Calling = {
   assignedTo: Array<User>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  permissions: Array<Permission>;
 };
 
 export type CallingConnection = {
@@ -231,6 +233,35 @@ export type PageInfo = {
   totalCount: Scalars['Int']['output'];
 };
 
+export type Permission = {
+  __typename?: 'Permission';
+  callings: Array<Calling>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
+export type PermissionConnection = {
+  __typename?: 'PermissionConnection';
+  edges: Array<PermissionEdge>;
+  pageInfo: PageInfo;
+};
+
+export type PermissionEdge = {
+  __typename?: 'PermissionEdge';
+  node: Permission;
+};
+
+export type PermissionFilters = {
+  callingIsNotOneOf?: InputMaybe<Array<Scalars['ID']['input']>>;
+  callingIsOneOf?: InputMaybe<Array<Scalars['ID']['input']>>;
+  nameContains?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type PermissionSearch = {
+  filters?: InputMaybe<PermissionFilters>;
+  paging?: InputMaybe<OffsetPaging>;
+};
+
 export type PlayerScore = {
   __typename?: 'PlayerScore';
   playerName: Scalars['String']['output'];
@@ -250,6 +281,7 @@ export type Query = {
   callings?: Maybe<CallingConnection>;
   currentGame?: Maybe<TriviaGame>;
   myTriviaScore: Array<TriviaPlayerScore>;
+  permissions?: Maybe<PermissionConnection>;
   self?: Maybe<User>;
   users?: Maybe<UserConnection>;
 };
@@ -268,6 +300,11 @@ export type QueryavailableTimeSlotsArgs = {
 
 export type QuerycallingsArgs = {
   input?: InputMaybe<CallingSearch>;
+};
+
+
+export type QuerypermissionsArgs = {
+  input?: InputMaybe<PermissionSearch>;
 };
 
 
@@ -648,6 +685,11 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>;
   OffsetPaging: OffsetPaging;
   PageInfo: ResolverTypeWrapper<PageInfo>;
+  Permission: ResolverTypeWrapper<PermissionMapper>;
+  PermissionConnection: ResolverTypeWrapper<Omit<PermissionConnection, 'edges'> & { edges: Array<ResolversTypes['PermissionEdge']> }>;
+  PermissionEdge: ResolverTypeWrapper<Omit<PermissionEdge, 'node'> & { node: ResolversTypes['Permission'] }>;
+  PermissionFilters: PermissionFilters;
+  PermissionSearch: PermissionSearch;
   PlayerScore: ResolverTypeWrapper<PlayerScore>;
   PriorityDirection: ResolverTypeWrapper<'ASC' | 'DESC'>;
   Query: ResolverTypeWrapper<{}>;
@@ -720,6 +762,11 @@ export type ResolversParentTypes = {
   Mutation: {};
   OffsetPaging: OffsetPaging;
   PageInfo: PageInfo;
+  Permission: PermissionMapper;
+  PermissionConnection: Omit<PermissionConnection, 'edges'> & { edges: Array<ResolversParentTypes['PermissionEdge']> };
+  PermissionEdge: Omit<PermissionEdge, 'node'> & { node: ResolversParentTypes['Permission'] };
+  PermissionFilters: PermissionFilters;
+  PermissionSearch: PermissionSearch;
   PlayerScore: PlayerScore;
   Query: {};
   RequestPasswordResetError: RequestPasswordResetError;
@@ -792,6 +839,7 @@ export type CallingResolvers<ContextType = any, ParentType extends ResolversPare
   assignedTo?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  permissions?: Resolver<Array<ResolversTypes['Permission']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -869,6 +917,24 @@ export type PageInfoResolvers<ContextType = any, ParentType extends ResolversPar
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PermissionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Permission'] = ResolversParentTypes['Permission']> = {
+  callings?: Resolver<Array<ResolversTypes['Calling']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PermissionConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['PermissionConnection'] = ResolversParentTypes['PermissionConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['PermissionEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PermissionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['PermissionEdge'] = ResolversParentTypes['PermissionEdge']> = {
+  node?: Resolver<ResolversTypes['Permission'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type PlayerScoreResolvers<ContextType = any, ParentType extends ResolversParentTypes['PlayerScore'] = ResolversParentTypes['PlayerScore']> = {
   playerName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   score?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -885,6 +951,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   callings?: Resolver<Maybe<ResolversTypes['CallingConnection']>, ParentType, ContextType, Partial<QuerycallingsArgs>>;
   currentGame?: Resolver<Maybe<ResolversTypes['TriviaGame']>, ParentType, ContextType>;
   myTriviaScore?: Resolver<Array<ResolversTypes['TriviaPlayerScore']>, ParentType, ContextType>;
+  permissions?: Resolver<Maybe<ResolversTypes['PermissionConnection']>, ParentType, ContextType, Partial<QuerypermissionsArgs>>;
   self?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   users?: Resolver<Maybe<ResolversTypes['UserConnection']>, ParentType, ContextType, Partial<QueryusersArgs>>;
 };
@@ -1085,6 +1152,9 @@ export type Resolvers<ContextType = any> = {
   LogoutPayload?: LogoutPayloadResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
+  Permission?: PermissionResolvers<ContextType>;
+  PermissionConnection?: PermissionConnectionResolvers<ContextType>;
+  PermissionEdge?: PermissionEdgeResolvers<ContextType>;
   PlayerScore?: PlayerScoreResolvers<ContextType>;
   PriorityDirection?: PriorityDirectionResolvers;
   Query?: QueryResolvers<ContextType>;

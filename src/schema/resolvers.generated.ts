@@ -7,6 +7,7 @@ import    { availableTimeSlots as Query_availableTimeSlots } from './calendarEve
 import    { callings as Query_callings } from './calling/resolvers/Query/callings';
 import    { currentGame as Query_currentGame } from './trivia/resolvers/Query/currentGame';
 import    { myTriviaScore as Query_myTriviaScore } from './trivia/resolvers/Query/myTriviaScore';
+import    { permissions as Query_permissions } from './permission/resolvers/Query/permissions';
 import    { self as Query_self } from './user/resolvers/Query/self';
 import    { users as Query_users } from './user/resolvers/Query/users';
 import    { changeMyTriviaPlayerName as Mutation_changeMyTriviaPlayerName } from './trivia/resolvers/Mutation/changeMyTriviaPlayerName';
@@ -42,6 +43,9 @@ import    { LoginError } from './auth/resolvers/LoginError';
 import    { LoginPayload } from './auth/resolvers/LoginPayload';
 import    { LogoutPayload } from './auth/resolvers/LogoutPayload';
 import    { PageInfo } from './base/resolvers/PageInfo';
+import    { Permission } from './permission/resolvers/Permission';
+import    { PermissionConnection } from './permission/resolvers/PermissionConnection';
+import    { PermissionEdge } from './permission/resolvers/PermissionEdge';
 import    { PlayerScore } from './trivia/resolvers/PlayerScore';
 import    { RequestPasswordResetError } from './auth/resolvers/RequestPasswordResetError';
 import    { RequestPasswordResetPayload } from './auth/resolvers/RequestPasswordResetPayload';
@@ -70,7 +74,7 @@ import    { VerifyEmailPayload } from './auth/resolvers/VerifyEmailPayload';
 import    { GenericError } from './calendarEvent/resolvers/GenericError';
 import    { DateTimeResolver,EmailAddressResolver } from 'graphql-scalars';
     export const resolvers: Resolvers = {
-      Query: { allAppointmentTypes: Query_allAppointmentTypes,allAvailabilityBlocks: Query_allAvailabilityBlocks,availabilityBlocks: Query_availabilityBlocks,availableTimeSlots: Query_availableTimeSlots,callings: Query_callings,currentGame: Query_currentGame,myTriviaScore: Query_myTriviaScore,self: Query_self,users: Query_users },
+      Query: { allAppointmentTypes: Query_allAppointmentTypes,allAvailabilityBlocks: Query_allAvailabilityBlocks,availabilityBlocks: Query_availabilityBlocks,availableTimeSlots: Query_availableTimeSlots,callings: Query_callings,currentGame: Query_currentGame,myTriviaScore: Query_myTriviaScore,permissions: Query_permissions,self: Query_self,users: Query_users },
       Mutation: { changeMyTriviaPlayerName: Mutation_changeMyTriviaPlayerName,closeTriviaGame: Mutation_closeTriviaGame,createAppointment: Mutation_createAppointment,createTriviaGame: Mutation_createTriviaGame,login: Mutation_login,logout: Mutation_logout,nextTriviaQuestion: Mutation_nextTriviaQuestion,pauseTriviaGame: Mutation_pauseTriviaGame,requestPasswordReset: Mutation_requestPasswordReset,resendEmailVerification: Mutation_resendEmailVerification,resetPassword: Mutation_resetPassword,resumeTriviaGame: Mutation_resumeTriviaGame,showScoreAfterQuestion: Mutation_showScoreAfterQuestion,showScoreImmediately: Mutation_showScoreImmediately,signUp: Mutation_signUp,startTriviaGame: Mutation_startTriviaGame,stopTriviaGame: Mutation_stopTriviaGame,submitTriviaAnswer: Mutation_submitTriviaAnswer,verifyEmail: Mutation_verifyEmail },
       Subscription: { joinTriviaGameAsAdmin: Subscription_joinTriviaGameAsAdmin,joinTriviaGameAsBoard: Subscription_joinTriviaGameAsBoard,joinTriviaGameAsPlayer: Subscription_joinTriviaGameAsPlayer },
       AppointmentError: AppointmentError,
@@ -84,6 +88,9 @@ LoginError: LoginError,
 LoginPayload: LoginPayload,
 LogoutPayload: LogoutPayload,
 PageInfo: PageInfo,
+Permission: Permission,
+PermissionConnection: PermissionConnection,
+PermissionEdge: PermissionEdge,
 PlayerScore: PlayerScore,
 RequestPasswordResetError: RequestPasswordResetError,
 RequestPasswordResetPayload: RequestPasswordResetPayload,

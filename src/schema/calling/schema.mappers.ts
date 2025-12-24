@@ -1,3 +1,3 @@
 import { Calling } from "../types.generated";
 
-export interface CallingMapper extends Omit<Calling, "assignedTo"> {}
+export interface CallingMapper extends Omit<Calling, "assignedTo" | "permissions"> {}
