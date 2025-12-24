@@ -107,6 +107,7 @@ type LogoutPayload {
 }
 
 type Mutation {
+  addCallingsToPermission(input: PermissionCallings!): PermissionAssociateCallingsPayload!
   changeMyTriviaPlayerName(newName: String!): TriviaGamePayload!
   closeTriviaGame: TriviaGamePayload!
   createAppointment(input: AppointmentDetails!): AppointmentPayload!
@@ -117,6 +118,7 @@ type Mutation {
   logout: LogoutPayload!
   nextTriviaQuestion: TriviaGamePayload!
   pauseTriviaGame: TriviaGamePayload!
+  removeCallingsFromPermission(input: PermissionCallings!): PermissionRemoveCallingsPayload!
   requestPasswordReset(email: EmailAddress!): RequestPasswordResetPayload!
   resendEmailVerification(email: EmailAddress!): ResendEmailVerificationPayload!
   resetPassword(input: ResetPasswordDetails!): ResetPasswordPayload!
@@ -155,6 +157,7 @@ type PermissionAssociateCallingsError {
 
 enum PermissionAssociateCallingsErrorCode {
   CALLING_NOT_FOUND
+  PERMISSION_NOT_FOUND
   UNEXPECTED_ERROR
 }
 
@@ -162,6 +165,11 @@ type PermissionAssociateCallingsPayload {
   callings: [Calling!]!
   error: PermissionAssociateCallingsError
   success: Boolean!
+}
+
+input PermissionCallings {
+  callingIds: [ID!]!
+  permissionId: ID!
 }
 
 type PermissionConnection {
@@ -213,6 +221,11 @@ input PermissionFilters {
 type PermissionPayload {
   error: PermissionError
   permission: Permission
+  success: Boolean!
+}
+
+type PermissionRemoveCallingsPayload {
+  error: PermissionAssociateCallingsError
   success: Boolean!
 }
 

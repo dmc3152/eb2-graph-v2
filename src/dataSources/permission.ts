@@ -1,10 +1,11 @@
 import { StringRecordId } from "surrealdb";
 import { SurrealUserClient } from "../clients/surrealUser";
-import { Permission, PermissionCreate, PermissionDeletePayload, PermissionErrorCode, PermissionSearch } from "../schema/types.generated";
+import { PermissionCallings, PermissionCreate, PermissionDeletePayload, PermissionErrorCode, PermissionRemoveCallingsPayload, PermissionSearch } from "../schema/types.generated";
 import { PermissionDto } from "../dtos/permission";
 import { PageInfoDto } from "../dtos/pageInfo";
 import { PermissionAssociateCallingsPayloadMapper, PermissionMapper, PermissionPayloadMapper } from "../schema/permission/schema.mappers";
 import { safeAsync } from "../utilities/safeAsync";
+import { CallingDto } from "../dtos/calling";
 
 export class PermissionDataSource {
     constructor(private surreal: SurrealUserClient) { }
@@ -148,18 +149,20 @@ export class PermissionDataSource {
         };
     }
 
-    async addCallingsToPermission(permissionId: string, callingIds: string[]): Promise<PermissionAssociateCallingsPayloadMapper> {
+    async addCallingsToPermission({ permissionId, callingIds }: PermissionCallings): Promise<PermissionAssociateCallingsPayloadMapper> {
         const query = `
             UPDATE ONLY permission
             SET callings += $callingIds
-            WHERE id = $permissionId
-            FETCH callings;
+            WHERE id = $permissionId;
+
+            SELECT *
+            FROM $callingIds;
         `;
         const params = {
             permissionId: new StringRecordId(permissionId),
             callingIds: callingIds.map(id => new StringRecordId(id))
         };
-        const [error, result] = await safeAsync(this.surreal.query<[PermissionDto]>({ query, params }));
+        const [error, result] = await safeAsync(this.surreal.query<[any, CallingDto[]]>({ query, params }));
         if (error) {
             return {
                 __typename: "PermissionAssociateCallingsPayload",
@@ -171,14 +174,42 @@ export class PermissionDataSource {
                 }
             }
         }
-        const [permissionDto] = result;
+        const [_, callingDtos] = result;
         return {
             __typename: "PermissionAssociateCallingsPayload",
-            callings: permissionDto.callings.map(callingDto => ({
+            callings: callingDtos.map(callingDto => ({
                 __typename: "Calling",
                 ...callingDto,
                 id: callingDto.id.toString(),
             })),
+            success: true,
+            error: null
+        };
+    }
+
+    async removeCallingsFromPermission({ permissionId, callingIds }: PermissionCallings): Promise<PermissionRemoveCallingsPayload> {
+        const query = `
+            UPDATE ONLY permission
+            SET callings -= $callingIds
+            WHERE id = $permissionId;
+        `;
+        const params = {
+            permissionId: new StringRecordId(permissionId),
+            callingIds: callingIds.map(id => new StringRecordId(id))
+        };
+        const [error, result] = await safeAsync(this.surreal.query<[PermissionDto]>({ query, params }));
+        if (error) {
+            return {
+                __typename: "PermissionRemoveCallingsPayload",
+                success: false,
+                error: {
+                    code: "UNEXPECTED_ERROR",
+                    message: error.message
+                }
+            }
+        }
+        return {
+            __typename: "PermissionRemoveCallingsPayload",
             success: true,
             error: null
         };

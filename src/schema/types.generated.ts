@@ -143,6 +143,7 @@ export type LogoutPayload = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addCallingsToPermission: PermissionAssociateCallingsPayload;
   changeMyTriviaPlayerName: TriviaGamePayload;
   closeTriviaGame: TriviaGamePayload;
   createAppointment: AppointmentPayload;
@@ -153,6 +154,7 @@ export type Mutation = {
   logout: LogoutPayload;
   nextTriviaQuestion: TriviaGamePayload;
   pauseTriviaGame: TriviaGamePayload;
+  removeCallingsFromPermission: PermissionRemoveCallingsPayload;
   requestPasswordReset: RequestPasswordResetPayload;
   resendEmailVerification: ResendEmailVerificationPayload;
   resetPassword: ResetPasswordPayload;
@@ -164,6 +166,11 @@ export type Mutation = {
   stopTriviaGame: TriviaGamePayload;
   submitTriviaAnswer: TriviaGamePayload;
   verifyEmail: VerifyEmailPayload;
+};
+
+
+export type MutationaddCallingsToPermissionArgs = {
+  input: PermissionCallings;
 };
 
 
@@ -194,6 +201,11 @@ export type MutationdeletePermissionArgs = {
 
 export type MutationloginArgs = {
   input: Credentials;
+};
+
+
+export type MutationremoveCallingsFromPermissionArgs = {
+  input: PermissionCallings;
 };
 
 
@@ -260,6 +272,7 @@ export type PermissionAssociateCallingsError = {
 
 export type PermissionAssociateCallingsErrorCode =
   | 'CALLING_NOT_FOUND'
+  | 'PERMISSION_NOT_FOUND'
   | 'UNEXPECTED_ERROR';
 
 export type PermissionAssociateCallingsPayload = {
@@ -267,6 +280,11 @@ export type PermissionAssociateCallingsPayload = {
   callings: Array<Calling>;
   error?: Maybe<PermissionAssociateCallingsError>;
   success: Scalars['Boolean']['output'];
+};
+
+export type PermissionCallings = {
+  callingIds: Array<Scalars['ID']['input']>;
+  permissionId: Scalars['ID']['input'];
 };
 
 export type PermissionConnection = {
@@ -322,6 +340,12 @@ export type PermissionPayload = {
   __typename?: 'PermissionPayload';
   error?: Maybe<PermissionError>;
   permission?: Maybe<Permission>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type PermissionRemoveCallingsPayload = {
+  __typename?: 'PermissionRemoveCallingsPayload';
+  error?: Maybe<PermissionAssociateCallingsError>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -755,8 +779,9 @@ export type ResolversTypes = {
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Permission: ResolverTypeWrapper<PermissionMapper>;
   PermissionAssociateCallingsError: ResolverTypeWrapper<Omit<PermissionAssociateCallingsError, 'code'> & { code: ResolversTypes['PermissionAssociateCallingsErrorCode'] }>;
-  PermissionAssociateCallingsErrorCode: ResolverTypeWrapper<'CALLING_NOT_FOUND' | 'UNEXPECTED_ERROR'>;
+  PermissionAssociateCallingsErrorCode: ResolverTypeWrapper<'PERMISSION_NOT_FOUND' | 'CALLING_NOT_FOUND' | 'UNEXPECTED_ERROR'>;
   PermissionAssociateCallingsPayload: ResolverTypeWrapper<PermissionAssociateCallingsPayloadMapper>;
+  PermissionCallings: PermissionCallings;
   PermissionConnection: ResolverTypeWrapper<Omit<PermissionConnection, 'edges'> & { edges: Array<ResolversTypes['PermissionEdge']> }>;
   PermissionCreate: PermissionCreate;
   PermissionDeleteError: ResolverTypeWrapper<Omit<PermissionDeleteError, 'code'> & { code: ResolversTypes['PermissionDeleteErrorCode'] }>;
@@ -767,6 +792,7 @@ export type ResolversTypes = {
   PermissionErrorCode: ResolverTypeWrapper<'PERMISSION_ALREADY_EXISTS' | 'INVALID_PERMISSION_NAME' | 'UNEXPECTED_ERROR'>;
   PermissionFilters: PermissionFilters;
   PermissionPayload: ResolverTypeWrapper<PermissionPayloadMapper>;
+  PermissionRemoveCallingsPayload: ResolverTypeWrapper<Omit<PermissionRemoveCallingsPayload, 'error'> & { error?: Maybe<ResolversTypes['PermissionAssociateCallingsError']> }>;
   PermissionSearch: PermissionSearch;
   PlayerScore: ResolverTypeWrapper<PlayerScore>;
   PriorityDirection: ResolverTypeWrapper<'ASC' | 'DESC'>;
@@ -843,6 +869,7 @@ export type ResolversParentTypes = {
   Permission: PermissionMapper;
   PermissionAssociateCallingsError: PermissionAssociateCallingsError;
   PermissionAssociateCallingsPayload: PermissionAssociateCallingsPayloadMapper;
+  PermissionCallings: PermissionCallings;
   PermissionConnection: Omit<PermissionConnection, 'edges'> & { edges: Array<ResolversParentTypes['PermissionEdge']> };
   PermissionCreate: PermissionCreate;
   PermissionDeleteError: PermissionDeleteError;
@@ -851,6 +878,7 @@ export type ResolversParentTypes = {
   PermissionError: PermissionError;
   PermissionFilters: PermissionFilters;
   PermissionPayload: PermissionPayloadMapper;
+  PermissionRemoveCallingsPayload: Omit<PermissionRemoveCallingsPayload, 'error'> & { error?: Maybe<ResolversParentTypes['PermissionAssociateCallingsError']> };
   PermissionSearch: PermissionSearch;
   PlayerScore: PlayerScore;
   Query: {};
@@ -973,6 +1001,7 @@ export type LogoutPayloadResolvers<ContextType = any, ParentType extends Resolve
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  addCallingsToPermission?: Resolver<ResolversTypes['PermissionAssociateCallingsPayload'], ParentType, ContextType, RequireFields<MutationaddCallingsToPermissionArgs, 'input'>>;
   changeMyTriviaPlayerName?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType, RequireFields<MutationchangeMyTriviaPlayerNameArgs, 'newName'>>;
   closeTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
   createAppointment?: Resolver<ResolversTypes['AppointmentPayload'], ParentType, ContextType, RequireFields<MutationcreateAppointmentArgs, 'input'>>;
@@ -983,6 +1012,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   logout?: Resolver<ResolversTypes['LogoutPayload'], ParentType, ContextType>;
   nextTriviaQuestion?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
   pauseTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
+  removeCallingsFromPermission?: Resolver<ResolversTypes['PermissionRemoveCallingsPayload'], ParentType, ContextType, RequireFields<MutationremoveCallingsFromPermissionArgs, 'input'>>;
   requestPasswordReset?: Resolver<ResolversTypes['RequestPasswordResetPayload'], ParentType, ContextType, RequireFields<MutationrequestPasswordResetArgs, 'email'>>;
   resendEmailVerification?: Resolver<ResolversTypes['ResendEmailVerificationPayload'], ParentType, ContextType, RequireFields<MutationresendEmailVerificationArgs, 'email'>>;
   resetPassword?: Resolver<ResolversTypes['ResetPasswordPayload'], ParentType, ContextType, RequireFields<MutationresetPasswordArgs, 'input'>>;
@@ -1017,7 +1047,7 @@ export type PermissionAssociateCallingsErrorResolvers<ContextType = any, ParentT
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PermissionAssociateCallingsErrorCodeResolvers = EnumResolverSignature<{ CALLING_NOT_FOUND?: any, UNEXPECTED_ERROR?: any }, ResolversTypes['PermissionAssociateCallingsErrorCode']>;
+export type PermissionAssociateCallingsErrorCodeResolvers = EnumResolverSignature<{ CALLING_NOT_FOUND?: any, PERMISSION_NOT_FOUND?: any, UNEXPECTED_ERROR?: any }, ResolversTypes['PermissionAssociateCallingsErrorCode']>;
 
 export type PermissionAssociateCallingsPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['PermissionAssociateCallingsPayload'] = ResolversParentTypes['PermissionAssociateCallingsPayload']> = {
   callings?: Resolver<Array<ResolversTypes['Calling']>, ParentType, ContextType>;
@@ -1062,6 +1092,12 @@ export type PermissionErrorCodeResolvers = EnumResolverSignature<{ INVALID_PERMI
 export type PermissionPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['PermissionPayload'] = ResolversParentTypes['PermissionPayload']> = {
   error?: Resolver<Maybe<ResolversTypes['PermissionError']>, ParentType, ContextType>;
   permission?: Resolver<Maybe<ResolversTypes['Permission']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PermissionRemoveCallingsPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['PermissionRemoveCallingsPayload'] = ResolversParentTypes['PermissionRemoveCallingsPayload']> = {
+  error?: Resolver<Maybe<ResolversTypes['PermissionAssociateCallingsError']>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -1295,6 +1331,7 @@ export type Resolvers<ContextType = any> = {
   PermissionError?: PermissionErrorResolvers<ContextType>;
   PermissionErrorCode?: PermissionErrorCodeResolvers;
   PermissionPayload?: PermissionPayloadResolvers<ContextType>;
+  PermissionRemoveCallingsPayload?: PermissionRemoveCallingsPayloadResolvers<ContextType>;
   PlayerScore?: PlayerScoreResolvers<ContextType>;
   PriorityDirection?: PriorityDirectionResolvers;
   Query?: QueryResolvers<ContextType>;

@@ -10,6 +10,7 @@ import    { myTriviaScore as Query_myTriviaScore } from './trivia/resolvers/Quer
 import    { permissions as Query_permissions } from './permission/resolvers/Query/permissions';
 import    { self as Query_self } from './user/resolvers/Query/self';
 import    { users as Query_users } from './user/resolvers/Query/users';
+import    { addCallingsToPermission as Mutation_addCallingsToPermission } from './permission/resolvers/Mutation/addCallingsToPermission';
 import    { changeMyTriviaPlayerName as Mutation_changeMyTriviaPlayerName } from './trivia/resolvers/Mutation/changeMyTriviaPlayerName';
 import    { closeTriviaGame as Mutation_closeTriviaGame } from './trivia/resolvers/Mutation/closeTriviaGame';
 import    { createAppointment as Mutation_createAppointment } from './calendarEvent/resolvers/Mutation/createAppointment';
@@ -20,6 +21,7 @@ import    { login as Mutation_login } from './auth/resolvers/Mutation/login';
 import    { logout as Mutation_logout } from './auth/resolvers/Mutation/logout';
 import    { nextTriviaQuestion as Mutation_nextTriviaQuestion } from './trivia/resolvers/Mutation/nextTriviaQuestion';
 import    { pauseTriviaGame as Mutation_pauseTriviaGame } from './trivia/resolvers/Mutation/pauseTriviaGame';
+import    { removeCallingsFromPermission as Mutation_removeCallingsFromPermission } from './permission/resolvers/Mutation/removeCallingsFromPermission';
 import    { requestPasswordReset as Mutation_requestPasswordReset } from './auth/resolvers/Mutation/requestPasswordReset';
 import    { resendEmailVerification as Mutation_resendEmailVerification } from './auth/resolvers/Mutation/resendEmailVerification';
 import    { resetPassword as Mutation_resetPassword } from './auth/resolvers/Mutation/resetPassword';
@@ -54,6 +56,7 @@ import    { PermissionDeletePayload } from './permission/resolvers/PermissionDel
 import    { PermissionEdge } from './permission/resolvers/PermissionEdge';
 import    { PermissionError } from './permission/resolvers/PermissionError';
 import    { PermissionPayload } from './permission/resolvers/PermissionPayload';
+import    { PermissionRemoveCallingsPayload } from './permission/resolvers/PermissionRemoveCallingsPayload';
 import    { PlayerScore } from './trivia/resolvers/PlayerScore';
 import    { RequestPasswordResetError } from './auth/resolvers/RequestPasswordResetError';
 import    { RequestPasswordResetPayload } from './auth/resolvers/RequestPasswordResetPayload';
@@ -83,7 +86,7 @@ import    { GenericError } from './calendarEvent/resolvers/GenericError';
 import    { DateTimeResolver,EmailAddressResolver } from 'graphql-scalars';
     export const resolvers: Resolvers = {
       Query: { allAppointmentTypes: Query_allAppointmentTypes,allAvailabilityBlocks: Query_allAvailabilityBlocks,availabilityBlocks: Query_availabilityBlocks,availableTimeSlots: Query_availableTimeSlots,callings: Query_callings,currentGame: Query_currentGame,myTriviaScore: Query_myTriviaScore,permissions: Query_permissions,self: Query_self,users: Query_users },
-      Mutation: { changeMyTriviaPlayerName: Mutation_changeMyTriviaPlayerName,closeTriviaGame: Mutation_closeTriviaGame,createAppointment: Mutation_createAppointment,createPermission: Mutation_createPermission,createTriviaGame: Mutation_createTriviaGame,deletePermission: Mutation_deletePermission,login: Mutation_login,logout: Mutation_logout,nextTriviaQuestion: Mutation_nextTriviaQuestion,pauseTriviaGame: Mutation_pauseTriviaGame,requestPasswordReset: Mutation_requestPasswordReset,resendEmailVerification: Mutation_resendEmailVerification,resetPassword: Mutation_resetPassword,resumeTriviaGame: Mutation_resumeTriviaGame,showScoreAfterQuestion: Mutation_showScoreAfterQuestion,showScoreImmediately: Mutation_showScoreImmediately,signUp: Mutation_signUp,startTriviaGame: Mutation_startTriviaGame,stopTriviaGame: Mutation_stopTriviaGame,submitTriviaAnswer: Mutation_submitTriviaAnswer,verifyEmail: Mutation_verifyEmail },
+      Mutation: { addCallingsToPermission: Mutation_addCallingsToPermission,changeMyTriviaPlayerName: Mutation_changeMyTriviaPlayerName,closeTriviaGame: Mutation_closeTriviaGame,createAppointment: Mutation_createAppointment,createPermission: Mutation_createPermission,createTriviaGame: Mutation_createTriviaGame,deletePermission: Mutation_deletePermission,login: Mutation_login,logout: Mutation_logout,nextTriviaQuestion: Mutation_nextTriviaQuestion,pauseTriviaGame: Mutation_pauseTriviaGame,removeCallingsFromPermission: Mutation_removeCallingsFromPermission,requestPasswordReset: Mutation_requestPasswordReset,resendEmailVerification: Mutation_resendEmailVerification,resetPassword: Mutation_resetPassword,resumeTriviaGame: Mutation_resumeTriviaGame,showScoreAfterQuestion: Mutation_showScoreAfterQuestion,showScoreImmediately: Mutation_showScoreImmediately,signUp: Mutation_signUp,startTriviaGame: Mutation_startTriviaGame,stopTriviaGame: Mutation_stopTriviaGame,submitTriviaAnswer: Mutation_submitTriviaAnswer,verifyEmail: Mutation_verifyEmail },
       Subscription: { joinTriviaGameAsAdmin: Subscription_joinTriviaGameAsAdmin,joinTriviaGameAsBoard: Subscription_joinTriviaGameAsBoard,joinTriviaGameAsPlayer: Subscription_joinTriviaGameAsPlayer },
       AppointmentError: AppointmentError,
 AppointmentPayload: AppointmentPayload,
@@ -105,6 +108,7 @@ PermissionDeletePayload: PermissionDeletePayload,
 PermissionEdge: PermissionEdge,
 PermissionError: PermissionError,
 PermissionPayload: PermissionPayload,
+PermissionRemoveCallingsPayload: PermissionRemoveCallingsPayload,
 PlayerScore: PlayerScore,
 RequestPasswordResetError: RequestPasswordResetError,
 RequestPasswordResetPayload: RequestPasswordResetPayload,
