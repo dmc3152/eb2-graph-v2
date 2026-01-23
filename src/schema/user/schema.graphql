@@ -3,6 +3,28 @@ extend type Query {
   users(input: UserSearch): UserConnection
 }
 
+extend type Mutation {
+  assignCallingsToUser(callingIds: [ID!]!, userId: ID!): CallingsAssignmentPayload!
+  removeCallingsFromUser(callingIds: [ID!]!, userId: ID!): CallingsAssignmentPayload!
+}
+
+type CallingsAssignmentPayload {
+  success: Boolean!
+  error: CallingsAssignmentError
+}
+
+type CallingsAssignmentError implements GenericError {
+  code: CallingsAssignmentErrorCodes!
+  message: String!
+}
+
+enum CallingsAssignmentErrorCodes {
+  USER_NOT_FOUND
+  CALLING_NOT_FOUND
+  INSUFFICIENT_PERMISSIONS
+  UNKNOWN_ERROR
+}
+
 input UserSearch {
   paging: OffsetPaging
   sorting: [UserSorting!]
@@ -30,6 +52,7 @@ input UserFilters {
   isSiteAdmin: Boolean
   hasCalling: Boolean
   callingIsOneOf: [ID!]
+  callingIsNotOneOf: [ID!]
 }
 
 type UserConnection {

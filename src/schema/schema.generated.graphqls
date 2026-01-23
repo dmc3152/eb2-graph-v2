@@ -58,6 +58,19 @@ type CallingConnection {
   pageInfo: PageInfo!
 }
 
+type CallingCreateError implements GenericError {
+  code: CallingCreateErrorCodes!
+  message: String!
+}
+
+enum CallingCreateErrorCodes {
+  INSUFFICIENT_PERMISSIONS
+  NAME_ALREADY_EXISTS
+  PERMISSION_ASSIGNMENT_FAILED
+  UNKNOWN_ERROR
+  USER_ASSIGNMENT_FAILED
+}
+
 type CallingEdge {
   node: Calling!
 }
@@ -67,9 +80,55 @@ input CallingFilters {
   nameContains: String
 }
 
+type CallingPayload {
+  calling: Calling
+  error: CallingUpdateError
+  success: Boolean!
+}
+
 input CallingSearch {
   filters: CallingFilters
   paging: OffsetPaging
+}
+
+type CallingUpdateError implements GenericError {
+  code: CallingUpdateErrorCodes!
+  message: String!
+}
+
+enum CallingUpdateErrorCodes {
+  INSUFFICIENT_PERMISSIONS
+  NAME_ALREADY_EXISTS
+  UNKNOWN_ERROR
+}
+
+type CallingsAssignmentError implements GenericError {
+  code: CallingsAssignmentErrorCodes!
+  message: String!
+}
+
+enum CallingsAssignmentErrorCodes {
+  CALLING_NOT_FOUND
+  INSUFFICIENT_PERMISSIONS
+  UNKNOWN_ERROR
+  USER_NOT_FOUND
+}
+
+type CallingsAssignmentPayload {
+  error: CallingsAssignmentError
+  success: Boolean!
+}
+
+input CreateCallingInput {
+  assignedTo: [ID!]
+  name: String!
+  permissions: [ID!]
+}
+
+type CreateCallingPayload {
+  calling: Calling
+  error: [CallingCreateError!]
+  success: Boolean!
 }
 
 input Credentials {
@@ -108,9 +167,11 @@ type LogoutPayload {
 
 type Mutation {
   addCallingsToPermission(input: PermissionCallings!): PermissionAssociateCallingsPayload!
+  assignCallingsToUser(callingIds: [ID!]!, userId: ID!): CallingsAssignmentPayload!
   changeMyTriviaPlayerName(newName: String!): TriviaGamePayload!
   closeTriviaGame: TriviaGamePayload!
   createAppointment(input: AppointmentDetails!): AppointmentPayload!
+  createCalling(input: CreateCallingInput!): CreateCallingPayload!
   createPermission(input: PermissionCreate!): PermissionPayload!
   createTriviaGame(gameId: ID!): TriviaGamePayload!
   deletePermission(id: ID!): PermissionDeletePayload!
@@ -119,6 +180,7 @@ type Mutation {
   nextTriviaQuestion: TriviaGamePayload!
   pauseTriviaGame: TriviaGamePayload!
   removeCallingsFromPermission(input: PermissionCallings!): PermissionRemoveCallingsPayload!
+  removeCallingsFromUser(callingIds: [ID!]!, userId: ID!): CallingsAssignmentPayload!
   requestPasswordReset(email: EmailAddress!): RequestPasswordResetPayload!
   resendEmailVerification(email: EmailAddress!): ResendEmailVerificationPayload!
   resetPassword(input: ResetPasswordDetails!): ResetPasswordPayload!
@@ -129,6 +191,7 @@ type Mutation {
   startTriviaGame(gameId: ID!): TriviaGamePayload!
   stopTriviaGame: TriviaGamePayload!
   submitTriviaAnswer(answer: TriviaAnswer!): TriviaGamePayload!
+  updateCallingName(id: ID!, name: String!): CallingPayload!
   verifyEmail(code: Int!, email: EmailAddress!): VerifyEmailPayload!
 }
 
@@ -249,6 +312,7 @@ type Query {
   allAvailabilityBlocks: [AvailabilityBlock!]!
   availabilityBlocks(bishopricMember: ID!): [AvailabilityBlock!]!
   availableTimeSlots(bishopricMember: ID!, durationInMinutes: Int!): [TimeSlot]!
+  callingById(id: ID!): Calling
   callings(input: CallingSearch): CallingConnection
   currentGame: TriviaGame
   myTriviaScore: [TriviaPlayerScore!]!
@@ -466,6 +530,7 @@ type UserEdge {
 }
 
 input UserFilters {
+  callingIsNotOneOf: [ID!]
   callingIsOneOf: [ID!]
   emailContains: String
   firstNameContains: String

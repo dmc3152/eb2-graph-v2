@@ -11,6 +11,8 @@ import { EmailClient } from './clients/email'
 import { CalendarClient } from './clients/calendar'
 import { SurrealMachineClient } from './clients/surrealMachine'
 import { TriviaClient } from './clients/trivia'
+import { uploadHandler } from './handlers/fileUpload'
+import path from 'path'
 
 const config = new Config();
 
@@ -52,6 +54,23 @@ const yoga = createYoga({
   context: buildContext(config, clients),
   plugins: [useCookies()]
 });
-const server = createServer(yoga);
+
+const uploadDir = path.join(process.cwd(), 'uploads');
+
+const server = createServer(async (req, res) => {
+  // Handle file uploads outside of GraphQL
+  if (req.method === 'POST' && req.url === '/upload') {
+    await uploadHandler(req, res, {
+      uploadDir,
+      maxFileSize: 100 * 1024 * 1024, // 100MB
+      allowedMimeTypes: ['image/jpeg', 'image/png', 'application/pdf', 'text/plain']
+    });
+    return;
+  }
+
+  // All other requests go to Yoga/GraphQL
+  yoga(req, res);
+});
+
 server.listen(4000);
 console.info('Server is running on https://studio.apollographql.com/sandbox/explorer?endpoint=http://localhost:4000/graphql');

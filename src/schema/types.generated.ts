@@ -94,6 +94,19 @@ export type CallingConnection = {
   pageInfo: PageInfo;
 };
 
+export type CallingCreateError = GenericError & {
+  __typename?: 'CallingCreateError';
+  code: CallingCreateErrorCodes;
+  message: Scalars['String']['output'];
+};
+
+export type CallingCreateErrorCodes =
+  | 'INSUFFICIENT_PERMISSIONS'
+  | 'NAME_ALREADY_EXISTS'
+  | 'PERMISSION_ASSIGNMENT_FAILED'
+  | 'UNKNOWN_ERROR'
+  | 'USER_ASSIGNMENT_FAILED';
+
 export type CallingEdge = {
   __typename?: 'CallingEdge';
   node: Calling;
@@ -104,9 +117,58 @@ export type CallingFilters = {
   nameContains?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CallingPayload = {
+  __typename?: 'CallingPayload';
+  calling?: Maybe<Calling>;
+  error?: Maybe<CallingUpdateError>;
+  success: Scalars['Boolean']['output'];
+};
+
 export type CallingSearch = {
   filters?: InputMaybe<CallingFilters>;
   paging?: InputMaybe<OffsetPaging>;
+};
+
+export type CallingUpdateError = GenericError & {
+  __typename?: 'CallingUpdateError';
+  code: CallingUpdateErrorCodes;
+  message: Scalars['String']['output'];
+};
+
+export type CallingUpdateErrorCodes =
+  | 'INSUFFICIENT_PERMISSIONS'
+  | 'NAME_ALREADY_EXISTS'
+  | 'UNKNOWN_ERROR';
+
+export type CallingsAssignmentError = GenericError & {
+  __typename?: 'CallingsAssignmentError';
+  code: CallingsAssignmentErrorCodes;
+  message: Scalars['String']['output'];
+};
+
+export type CallingsAssignmentErrorCodes =
+  | 'CALLING_NOT_FOUND'
+  | 'INSUFFICIENT_PERMISSIONS'
+  | 'UNKNOWN_ERROR'
+  | 'USER_NOT_FOUND';
+
+export type CallingsAssignmentPayload = {
+  __typename?: 'CallingsAssignmentPayload';
+  error?: Maybe<CallingsAssignmentError>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type CreateCallingInput = {
+  assignedTo?: InputMaybe<Array<Scalars['ID']['input']>>;
+  name: Scalars['String']['input'];
+  permissions?: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+export type CreateCallingPayload = {
+  __typename?: 'CreateCallingPayload';
+  calling?: Maybe<Calling>;
+  error?: Maybe<Array<CallingCreateError>>;
+  success: Scalars['Boolean']['output'];
 };
 
 export type Credentials = {
@@ -144,9 +206,11 @@ export type LogoutPayload = {
 export type Mutation = {
   __typename?: 'Mutation';
   addCallingsToPermission: PermissionAssociateCallingsPayload;
+  assignCallingsToUser: CallingsAssignmentPayload;
   changeMyTriviaPlayerName: TriviaGamePayload;
   closeTriviaGame: TriviaGamePayload;
   createAppointment: AppointmentPayload;
+  createCalling: CreateCallingPayload;
   createPermission: PermissionPayload;
   createTriviaGame: TriviaGamePayload;
   deletePermission: PermissionDeletePayload;
@@ -155,6 +219,7 @@ export type Mutation = {
   nextTriviaQuestion: TriviaGamePayload;
   pauseTriviaGame: TriviaGamePayload;
   removeCallingsFromPermission: PermissionRemoveCallingsPayload;
+  removeCallingsFromUser: CallingsAssignmentPayload;
   requestPasswordReset: RequestPasswordResetPayload;
   resendEmailVerification: ResendEmailVerificationPayload;
   resetPassword: ResetPasswordPayload;
@@ -165,12 +230,19 @@ export type Mutation = {
   startTriviaGame: TriviaGamePayload;
   stopTriviaGame: TriviaGamePayload;
   submitTriviaAnswer: TriviaGamePayload;
+  updateCallingName: CallingPayload;
   verifyEmail: VerifyEmailPayload;
 };
 
 
 export type MutationaddCallingsToPermissionArgs = {
   input: PermissionCallings;
+};
+
+
+export type MutationassignCallingsToUserArgs = {
+  callingIds: Array<Scalars['ID']['input']>;
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -181,6 +253,11 @@ export type MutationchangeMyTriviaPlayerNameArgs = {
 
 export type MutationcreateAppointmentArgs = {
   input: AppointmentDetails;
+};
+
+
+export type MutationcreateCallingArgs = {
+  input: CreateCallingInput;
 };
 
 
@@ -206,6 +283,12 @@ export type MutationloginArgs = {
 
 export type MutationremoveCallingsFromPermissionArgs = {
   input: PermissionCallings;
+};
+
+
+export type MutationremoveCallingsFromUserArgs = {
+  callingIds: Array<Scalars['ID']['input']>;
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -236,6 +319,12 @@ export type MutationstartTriviaGameArgs = {
 
 export type MutationsubmitTriviaAnswerArgs = {
   answer: TriviaAnswer;
+};
+
+
+export type MutationupdateCallingNameArgs = {
+  id: Scalars['ID']['input'];
+  name: Scalars['String']['input'];
 };
 
 
@@ -370,6 +459,7 @@ export type Query = {
   allAvailabilityBlocks: Array<AvailabilityBlock>;
   availabilityBlocks: Array<AvailabilityBlock>;
   availableTimeSlots: Array<Maybe<TimeSlot>>;
+  callingById?: Maybe<Calling>;
   callings?: Maybe<CallingConnection>;
   currentGame?: Maybe<TriviaGame>;
   myTriviaScore: Array<TriviaPlayerScore>;
@@ -387,6 +477,11 @@ export type QueryavailabilityBlocksArgs = {
 export type QueryavailableTimeSlotsArgs = {
   bishopricMember: Scalars['ID']['input'];
   durationInMinutes: Scalars['Int']['input'];
+};
+
+
+export type QuerycallingByIdArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -628,6 +723,7 @@ export type UserEdge = {
 };
 
 export type UserFilters = {
+  callingIsNotOneOf?: InputMaybe<Array<Scalars['ID']['input']>>;
   callingIsOneOf?: InputMaybe<Array<Scalars['ID']['input']>>;
   emailContains?: InputMaybe<Scalars['String']['input']>;
   firstNameContains?: InputMaybe<Scalars['String']['input']>;
@@ -745,7 +841,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = {
-  GenericError: ( Omit<AppointmentError, 'code'> & { code?: Maybe<_RefType['AppointmentErrorCodes']> } & { __typename: 'AppointmentError' } ) | ( Omit<LoginError, 'code'> & { code?: Maybe<_RefType['LoginErrorCodes']> } & { __typename: 'LoginError' } ) | ( Omit<RequestPasswordResetError, 'code'> & { code?: Maybe<_RefType['RequestPasswordResetErrorCodes']> } & { __typename: 'RequestPasswordResetError' } ) | ( Omit<ResendEmailVerificationError, 'code'> & { code?: Maybe<_RefType['ResendEmailVerificationErrorCodes']> } & { __typename: 'ResendEmailVerificationError' } ) | ( Omit<ResetPasswordError, 'code'> & { code?: Maybe<_RefType['ResetPasswordErrorCodes']> } & { __typename: 'ResetPasswordError' } ) | ( Omit<SignUpError, 'code'> & { code?: Maybe<_RefType['SignUpErrorCodes']> } & { __typename: 'SignUpError' } ) | ( Omit<TriviaGameError, 'code'> & { code?: Maybe<_RefType['TriviaGameErrorCodes']> } & { __typename: 'TriviaGameError' } ) | ( Omit<VerifyEmailError, 'code'> & { code?: Maybe<_RefType['VerifyEmailErrorCodes']> } & { __typename: 'VerifyEmailError' } );
+  GenericError: ( Omit<AppointmentError, 'code'> & { code?: Maybe<_RefType['AppointmentErrorCodes']> } & { __typename: 'AppointmentError' } ) | ( Omit<CallingCreateError, 'code'> & { code: _RefType['CallingCreateErrorCodes'] } & { __typename: 'CallingCreateError' } ) | ( Omit<CallingUpdateError, 'code'> & { code: _RefType['CallingUpdateErrorCodes'] } & { __typename: 'CallingUpdateError' } ) | ( Omit<CallingsAssignmentError, 'code'> & { code: _RefType['CallingsAssignmentErrorCodes'] } & { __typename: 'CallingsAssignmentError' } ) | ( Omit<LoginError, 'code'> & { code?: Maybe<_RefType['LoginErrorCodes']> } & { __typename: 'LoginError' } ) | ( Omit<RequestPasswordResetError, 'code'> & { code?: Maybe<_RefType['RequestPasswordResetErrorCodes']> } & { __typename: 'RequestPasswordResetError' } ) | ( Omit<ResendEmailVerificationError, 'code'> & { code?: Maybe<_RefType['ResendEmailVerificationErrorCodes']> } & { __typename: 'ResendEmailVerificationError' } ) | ( Omit<ResetPasswordError, 'code'> & { code?: Maybe<_RefType['ResetPasswordErrorCodes']> } & { __typename: 'ResetPasswordError' } ) | ( Omit<SignUpError, 'code'> & { code?: Maybe<_RefType['SignUpErrorCodes']> } & { __typename: 'SignUpError' } ) | ( Omit<TriviaGameError, 'code'> & { code?: Maybe<_RefType['TriviaGameErrorCodes']> } & { __typename: 'TriviaGameError' } ) | ( Omit<VerifyEmailError, 'code'> & { code?: Maybe<_RefType['VerifyEmailErrorCodes']> } & { __typename: 'VerifyEmailError' } );
 };
 
 /** Mapping between all available schema types and the resolvers types */
@@ -763,9 +859,19 @@ export type ResolversTypes = {
   AvailabilityBlock: ResolverTypeWrapper<AvailabilityBlockMapper>;
   Calling: ResolverTypeWrapper<CallingMapper>;
   CallingConnection: ResolverTypeWrapper<Omit<CallingConnection, 'edges'> & { edges: Array<ResolversTypes['CallingEdge']> }>;
+  CallingCreateError: ResolverTypeWrapper<Omit<CallingCreateError, 'code'> & { code: ResolversTypes['CallingCreateErrorCodes'] }>;
+  CallingCreateErrorCodes: ResolverTypeWrapper<'NAME_ALREADY_EXISTS' | 'INSUFFICIENT_PERMISSIONS' | 'USER_ASSIGNMENT_FAILED' | 'PERMISSION_ASSIGNMENT_FAILED' | 'UNKNOWN_ERROR'>;
   CallingEdge: ResolverTypeWrapper<Omit<CallingEdge, 'node'> & { node: ResolversTypes['Calling'] }>;
   CallingFilters: CallingFilters;
+  CallingPayload: ResolverTypeWrapper<Omit<CallingPayload, 'calling' | 'error'> & { calling?: Maybe<ResolversTypes['Calling']>, error?: Maybe<ResolversTypes['CallingUpdateError']> }>;
   CallingSearch: CallingSearch;
+  CallingUpdateError: ResolverTypeWrapper<Omit<CallingUpdateError, 'code'> & { code: ResolversTypes['CallingUpdateErrorCodes'] }>;
+  CallingUpdateErrorCodes: ResolverTypeWrapper<'NAME_ALREADY_EXISTS' | 'INSUFFICIENT_PERMISSIONS' | 'UNKNOWN_ERROR'>;
+  CallingsAssignmentError: ResolverTypeWrapper<Omit<CallingsAssignmentError, 'code'> & { code: ResolversTypes['CallingsAssignmentErrorCodes'] }>;
+  CallingsAssignmentErrorCodes: ResolverTypeWrapper<'USER_NOT_FOUND' | 'CALLING_NOT_FOUND' | 'INSUFFICIENT_PERMISSIONS' | 'UNKNOWN_ERROR'>;
+  CallingsAssignmentPayload: ResolverTypeWrapper<Omit<CallingsAssignmentPayload, 'error'> & { error?: Maybe<ResolversTypes['CallingsAssignmentError']> }>;
+  CreateCallingInput: CreateCallingInput;
+  CreateCallingPayload: ResolverTypeWrapper<Omit<CreateCallingPayload, 'calling' | 'error'> & { calling?: Maybe<ResolversTypes['Calling']>, error?: Maybe<Array<ResolversTypes['CallingCreateError']>> }>;
   Credentials: Credentials;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   EmailAddress: ResolverTypeWrapper<Scalars['EmailAddress']['output']>;
@@ -853,9 +959,16 @@ export type ResolversParentTypes = {
   AvailabilityBlock: AvailabilityBlockMapper;
   Calling: CallingMapper;
   CallingConnection: Omit<CallingConnection, 'edges'> & { edges: Array<ResolversParentTypes['CallingEdge']> };
+  CallingCreateError: CallingCreateError;
   CallingEdge: Omit<CallingEdge, 'node'> & { node: ResolversParentTypes['Calling'] };
   CallingFilters: CallingFilters;
+  CallingPayload: Omit<CallingPayload, 'calling' | 'error'> & { calling?: Maybe<ResolversParentTypes['Calling']>, error?: Maybe<ResolversParentTypes['CallingUpdateError']> };
   CallingSearch: CallingSearch;
+  CallingUpdateError: CallingUpdateError;
+  CallingsAssignmentError: CallingsAssignmentError;
+  CallingsAssignmentPayload: Omit<CallingsAssignmentPayload, 'error'> & { error?: Maybe<ResolversParentTypes['CallingsAssignmentError']> };
+  CreateCallingInput: CreateCallingInput;
+  CreateCallingPayload: Omit<CreateCallingPayload, 'calling' | 'error'> & { calling?: Maybe<ResolversParentTypes['Calling']>, error?: Maybe<Array<ResolversParentTypes['CallingCreateError']>> };
   Credentials: Credentials;
   DateTime: Scalars['DateTime']['output'];
   EmailAddress: Scalars['EmailAddress']['output'];
@@ -962,8 +1075,52 @@ export type CallingConnectionResolvers<ContextType = any, ParentType extends Res
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type CallingCreateErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['CallingCreateError'] = ResolversParentTypes['CallingCreateError']> = {
+  code?: Resolver<ResolversTypes['CallingCreateErrorCodes'], ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CallingCreateErrorCodesResolvers = EnumResolverSignature<{ INSUFFICIENT_PERMISSIONS?: any, NAME_ALREADY_EXISTS?: any, PERMISSION_ASSIGNMENT_FAILED?: any, UNKNOWN_ERROR?: any, USER_ASSIGNMENT_FAILED?: any }, ResolversTypes['CallingCreateErrorCodes']>;
+
 export type CallingEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['CallingEdge'] = ResolversParentTypes['CallingEdge']> = {
   node?: Resolver<ResolversTypes['Calling'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CallingPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['CallingPayload'] = ResolversParentTypes['CallingPayload']> = {
+  calling?: Resolver<Maybe<ResolversTypes['Calling']>, ParentType, ContextType>;
+  error?: Resolver<Maybe<ResolversTypes['CallingUpdateError']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CallingUpdateErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['CallingUpdateError'] = ResolversParentTypes['CallingUpdateError']> = {
+  code?: Resolver<ResolversTypes['CallingUpdateErrorCodes'], ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CallingUpdateErrorCodesResolvers = EnumResolverSignature<{ INSUFFICIENT_PERMISSIONS?: any, NAME_ALREADY_EXISTS?: any, UNKNOWN_ERROR?: any }, ResolversTypes['CallingUpdateErrorCodes']>;
+
+export type CallingsAssignmentErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['CallingsAssignmentError'] = ResolversParentTypes['CallingsAssignmentError']> = {
+  code?: Resolver<ResolversTypes['CallingsAssignmentErrorCodes'], ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CallingsAssignmentErrorCodesResolvers = EnumResolverSignature<{ CALLING_NOT_FOUND?: any, INSUFFICIENT_PERMISSIONS?: any, UNKNOWN_ERROR?: any, USER_NOT_FOUND?: any }, ResolversTypes['CallingsAssignmentErrorCodes']>;
+
+export type CallingsAssignmentPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['CallingsAssignmentPayload'] = ResolversParentTypes['CallingsAssignmentPayload']> = {
+  error?: Resolver<Maybe<ResolversTypes['CallingsAssignmentError']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CreateCallingPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateCallingPayload'] = ResolversParentTypes['CreateCallingPayload']> = {
+  calling?: Resolver<Maybe<ResolversTypes['Calling']>, ParentType, ContextType>;
+  error?: Resolver<Maybe<Array<ResolversTypes['CallingCreateError']>>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -976,7 +1133,7 @@ export interface EmailAddressScalarConfig extends GraphQLScalarTypeConfig<Resolv
 }
 
 export type GenericErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['GenericError'] = ResolversParentTypes['GenericError']> = {
-  __resolveType?: TypeResolveFn<'AppointmentError' | 'LoginError' | 'RequestPasswordResetError' | 'ResendEmailVerificationError' | 'ResetPasswordError' | 'SignUpError' | 'TriviaGameError' | 'VerifyEmailError', ParentType, ContextType>;
+  __resolveType?: TypeResolveFn<'AppointmentError' | 'CallingCreateError' | 'CallingUpdateError' | 'CallingsAssignmentError' | 'LoginError' | 'RequestPasswordResetError' | 'ResendEmailVerificationError' | 'ResetPasswordError' | 'SignUpError' | 'TriviaGameError' | 'VerifyEmailError', ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
@@ -1002,9 +1159,11 @@ export type LogoutPayloadResolvers<ContextType = any, ParentType extends Resolve
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   addCallingsToPermission?: Resolver<ResolversTypes['PermissionAssociateCallingsPayload'], ParentType, ContextType, RequireFields<MutationaddCallingsToPermissionArgs, 'input'>>;
+  assignCallingsToUser?: Resolver<ResolversTypes['CallingsAssignmentPayload'], ParentType, ContextType, RequireFields<MutationassignCallingsToUserArgs, 'callingIds' | 'userId'>>;
   changeMyTriviaPlayerName?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType, RequireFields<MutationchangeMyTriviaPlayerNameArgs, 'newName'>>;
   closeTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
   createAppointment?: Resolver<ResolversTypes['AppointmentPayload'], ParentType, ContextType, RequireFields<MutationcreateAppointmentArgs, 'input'>>;
+  createCalling?: Resolver<ResolversTypes['CreateCallingPayload'], ParentType, ContextType, RequireFields<MutationcreateCallingArgs, 'input'>>;
   createPermission?: Resolver<ResolversTypes['PermissionPayload'], ParentType, ContextType, RequireFields<MutationcreatePermissionArgs, 'input'>>;
   createTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType, RequireFields<MutationcreateTriviaGameArgs, 'gameId'>>;
   deletePermission?: Resolver<ResolversTypes['PermissionDeletePayload'], ParentType, ContextType, RequireFields<MutationdeletePermissionArgs, 'id'>>;
@@ -1013,6 +1172,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   nextTriviaQuestion?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
   pauseTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
   removeCallingsFromPermission?: Resolver<ResolversTypes['PermissionRemoveCallingsPayload'], ParentType, ContextType, RequireFields<MutationremoveCallingsFromPermissionArgs, 'input'>>;
+  removeCallingsFromUser?: Resolver<ResolversTypes['CallingsAssignmentPayload'], ParentType, ContextType, RequireFields<MutationremoveCallingsFromUserArgs, 'callingIds' | 'userId'>>;
   requestPasswordReset?: Resolver<ResolversTypes['RequestPasswordResetPayload'], ParentType, ContextType, RequireFields<MutationrequestPasswordResetArgs, 'email'>>;
   resendEmailVerification?: Resolver<ResolversTypes['ResendEmailVerificationPayload'], ParentType, ContextType, RequireFields<MutationresendEmailVerificationArgs, 'email'>>;
   resetPassword?: Resolver<ResolversTypes['ResetPasswordPayload'], ParentType, ContextType, RequireFields<MutationresetPasswordArgs, 'input'>>;
@@ -1023,6 +1183,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   startTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType, RequireFields<MutationstartTriviaGameArgs, 'gameId'>>;
   stopTriviaGame?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType>;
   submitTriviaAnswer?: Resolver<ResolversTypes['TriviaGamePayload'], ParentType, ContextType, RequireFields<MutationsubmitTriviaAnswerArgs, 'answer'>>;
+  updateCallingName?: Resolver<ResolversTypes['CallingPayload'], ParentType, ContextType, RequireFields<MutationupdateCallingNameArgs, 'id' | 'name'>>;
   verifyEmail?: Resolver<ResolversTypes['VerifyEmailPayload'], ParentType, ContextType, RequireFields<MutationverifyEmailArgs, 'code' | 'email'>>;
 };
 
@@ -1115,6 +1276,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   allAvailabilityBlocks?: Resolver<Array<ResolversTypes['AvailabilityBlock']>, ParentType, ContextType>;
   availabilityBlocks?: Resolver<Array<ResolversTypes['AvailabilityBlock']>, ParentType, ContextType, RequireFields<QueryavailabilityBlocksArgs, 'bishopricMember'>>;
   availableTimeSlots?: Resolver<Array<Maybe<ResolversTypes['TimeSlot']>>, ParentType, ContextType, RequireFields<QueryavailableTimeSlotsArgs, 'bishopricMember' | 'durationInMinutes'>>;
+  callingById?: Resolver<Maybe<ResolversTypes['Calling']>, ParentType, ContextType, RequireFields<QuerycallingByIdArgs, 'id'>>;
   callings?: Resolver<Maybe<ResolversTypes['CallingConnection']>, ParentType, ContextType, Partial<QuerycallingsArgs>>;
   currentGame?: Resolver<Maybe<ResolversTypes['TriviaGame']>, ParentType, ContextType>;
   myTriviaScore?: Resolver<Array<ResolversTypes['TriviaPlayerScore']>, ParentType, ContextType>;
@@ -1309,7 +1471,16 @@ export type Resolvers<ContextType = any> = {
   AvailabilityBlock?: AvailabilityBlockResolvers<ContextType>;
   Calling?: CallingResolvers<ContextType>;
   CallingConnection?: CallingConnectionResolvers<ContextType>;
+  CallingCreateError?: CallingCreateErrorResolvers<ContextType>;
+  CallingCreateErrorCodes?: CallingCreateErrorCodesResolvers;
   CallingEdge?: CallingEdgeResolvers<ContextType>;
+  CallingPayload?: CallingPayloadResolvers<ContextType>;
+  CallingUpdateError?: CallingUpdateErrorResolvers<ContextType>;
+  CallingUpdateErrorCodes?: CallingUpdateErrorCodesResolvers;
+  CallingsAssignmentError?: CallingsAssignmentErrorResolvers<ContextType>;
+  CallingsAssignmentErrorCodes?: CallingsAssignmentErrorCodesResolvers;
+  CallingsAssignmentPayload?: CallingsAssignmentPayloadResolvers<ContextType>;
+  CreateCallingPayload?: CreateCallingPayloadResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
   EmailAddress?: GraphQLScalarType;
   GenericError?: GenericErrorResolvers<ContextType>;

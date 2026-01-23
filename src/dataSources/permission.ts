@@ -10,6 +10,17 @@ import { CallingDto } from "../dtos/calling";
 export class PermissionDataSource {
     constructor(private surreal: SurrealUserClient) { }
 
+    async getUserPermissions(userId: string): Promise<string[]> {
+        const query = `
+            LET $callingIsOneOf = SELECT callings FROM ONLY $userId;
+            LET $ids = (SELECT id FROM permission WHERE array::any(callings[WHERE $callingIsOneOf.callings CONTAINS id]));
+            RETURN array::distinct($ids.map(|$v| $v.id));
+        `;
+        const params = { userId: new StringRecordId(userId) };
+        const [_, __, ids] = await this.surreal.query<[unknown, unknown, string[]]>({ query, params });
+        return ids ?? [];
+    }
+
     async searchPermissions(input?: PermissionSearch | null): Promise<[PermissionMapper[], PageInfoDto]> {
         const whereClause = `
             ($nameContains = NULL OR string::contains(string::lowercase(name), string::lowercase($nameContains))) AND

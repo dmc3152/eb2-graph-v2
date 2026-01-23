@@ -4,6 +4,7 @@
 import    { allAvailabilityBlocks as Query_allAvailabilityBlocks } from './calendarEvent/resolvers/Query/allAvailabilityBlocks';
 import    { availabilityBlocks as Query_availabilityBlocks } from './calendarEvent/resolvers/Query/availabilityBlocks';
 import    { availableTimeSlots as Query_availableTimeSlots } from './calendarEvent/resolvers/Query/availableTimeSlots';
+import    { callingById as Query_callingById } from './calling/resolvers/Query/callingById';
 import    { callings as Query_callings } from './calling/resolvers/Query/callings';
 import    { currentGame as Query_currentGame } from './trivia/resolvers/Query/currentGame';
 import    { myTriviaScore as Query_myTriviaScore } from './trivia/resolvers/Query/myTriviaScore';
@@ -11,9 +12,11 @@ import    { permissions as Query_permissions } from './permission/resolvers/Quer
 import    { self as Query_self } from './user/resolvers/Query/self';
 import    { users as Query_users } from './user/resolvers/Query/users';
 import    { addCallingsToPermission as Mutation_addCallingsToPermission } from './permission/resolvers/Mutation/addCallingsToPermission';
+import    { assignCallingsToUser as Mutation_assignCallingsToUser } from './user/resolvers/Mutation/assignCallingsToUser';
 import    { changeMyTriviaPlayerName as Mutation_changeMyTriviaPlayerName } from './trivia/resolvers/Mutation/changeMyTriviaPlayerName';
 import    { closeTriviaGame as Mutation_closeTriviaGame } from './trivia/resolvers/Mutation/closeTriviaGame';
 import    { createAppointment as Mutation_createAppointment } from './calendarEvent/resolvers/Mutation/createAppointment';
+import    { createCalling as Mutation_createCalling } from './calling/resolvers/Mutation/createCalling';
 import    { createPermission as Mutation_createPermission } from './permission/resolvers/Mutation/createPermission';
 import    { createTriviaGame as Mutation_createTriviaGame } from './trivia/resolvers/Mutation/createTriviaGame';
 import    { deletePermission as Mutation_deletePermission } from './permission/resolvers/Mutation/deletePermission';
@@ -22,6 +25,7 @@ import    { logout as Mutation_logout } from './auth/resolvers/Mutation/logout';
 import    { nextTriviaQuestion as Mutation_nextTriviaQuestion } from './trivia/resolvers/Mutation/nextTriviaQuestion';
 import    { pauseTriviaGame as Mutation_pauseTriviaGame } from './trivia/resolvers/Mutation/pauseTriviaGame';
 import    { removeCallingsFromPermission as Mutation_removeCallingsFromPermission } from './permission/resolvers/Mutation/removeCallingsFromPermission';
+import    { removeCallingsFromUser as Mutation_removeCallingsFromUser } from './user/resolvers/Mutation/removeCallingsFromUser';
 import    { requestPasswordReset as Mutation_requestPasswordReset } from './auth/resolvers/Mutation/requestPasswordReset';
 import    { resendEmailVerification as Mutation_resendEmailVerification } from './auth/resolvers/Mutation/resendEmailVerification';
 import    { resetPassword as Mutation_resetPassword } from './auth/resolvers/Mutation/resetPassword';
@@ -32,6 +36,7 @@ import    { signUp as Mutation_signUp } from './auth/resolvers/Mutation/signUp';
 import    { startTriviaGame as Mutation_startTriviaGame } from './trivia/resolvers/Mutation/startTriviaGame';
 import    { stopTriviaGame as Mutation_stopTriviaGame } from './trivia/resolvers/Mutation/stopTriviaGame';
 import    { submitTriviaAnswer as Mutation_submitTriviaAnswer } from './trivia/resolvers/Mutation/submitTriviaAnswer';
+import    { updateCallingName as Mutation_updateCallingName } from './calling/resolvers/Mutation/updateCallingName';
 import    { verifyEmail as Mutation_verifyEmail } from './auth/resolvers/Mutation/verifyEmail';
 import    { joinTriviaGameAsAdmin as Subscription_joinTriviaGameAsAdmin } from './trivia/resolvers/Subscription/joinTriviaGameAsAdmin';
 import    { joinTriviaGameAsBoard as Subscription_joinTriviaGameAsBoard } from './trivia/resolvers/Subscription/joinTriviaGameAsBoard';
@@ -42,7 +47,13 @@ import    { AppointmentType } from './calendarEvent/resolvers/AppointmentType';
 import    { AvailabilityBlock } from './calendarEvent/resolvers/AvailabilityBlock';
 import    { Calling } from './calling/resolvers/Calling';
 import    { CallingConnection } from './calling/resolvers/CallingConnection';
+import    { CallingCreateError } from './calling/resolvers/CallingCreateError';
 import    { CallingEdge } from './calling/resolvers/CallingEdge';
+import    { CallingPayload } from './calling/resolvers/CallingPayload';
+import    { CallingUpdateError } from './calling/resolvers/CallingUpdateError';
+import    { CallingsAssignmentError } from './user/resolvers/CallingsAssignmentError';
+import    { CallingsAssignmentPayload } from './user/resolvers/CallingsAssignmentPayload';
+import    { CreateCallingPayload } from './calling/resolvers/CreateCallingPayload';
 import    { LoginError } from './auth/resolvers/LoginError';
 import    { LoginPayload } from './auth/resolvers/LoginPayload';
 import    { LogoutPayload } from './auth/resolvers/LogoutPayload';
@@ -85,8 +96,8 @@ import    { VerifyEmailPayload } from './auth/resolvers/VerifyEmailPayload';
 import    { GenericError } from './calendarEvent/resolvers/GenericError';
 import    { DateTimeResolver,EmailAddressResolver } from 'graphql-scalars';
     export const resolvers: Resolvers = {
-      Query: { allAppointmentTypes: Query_allAppointmentTypes,allAvailabilityBlocks: Query_allAvailabilityBlocks,availabilityBlocks: Query_availabilityBlocks,availableTimeSlots: Query_availableTimeSlots,callings: Query_callings,currentGame: Query_currentGame,myTriviaScore: Query_myTriviaScore,permissions: Query_permissions,self: Query_self,users: Query_users },
-      Mutation: { addCallingsToPermission: Mutation_addCallingsToPermission,changeMyTriviaPlayerName: Mutation_changeMyTriviaPlayerName,closeTriviaGame: Mutation_closeTriviaGame,createAppointment: Mutation_createAppointment,createPermission: Mutation_createPermission,createTriviaGame: Mutation_createTriviaGame,deletePermission: Mutation_deletePermission,login: Mutation_login,logout: Mutation_logout,nextTriviaQuestion: Mutation_nextTriviaQuestion,pauseTriviaGame: Mutation_pauseTriviaGame,removeCallingsFromPermission: Mutation_removeCallingsFromPermission,requestPasswordReset: Mutation_requestPasswordReset,resendEmailVerification: Mutation_resendEmailVerification,resetPassword: Mutation_resetPassword,resumeTriviaGame: Mutation_resumeTriviaGame,showScoreAfterQuestion: Mutation_showScoreAfterQuestion,showScoreImmediately: Mutation_showScoreImmediately,signUp: Mutation_signUp,startTriviaGame: Mutation_startTriviaGame,stopTriviaGame: Mutation_stopTriviaGame,submitTriviaAnswer: Mutation_submitTriviaAnswer,verifyEmail: Mutation_verifyEmail },
+      Query: { allAppointmentTypes: Query_allAppointmentTypes,allAvailabilityBlocks: Query_allAvailabilityBlocks,availabilityBlocks: Query_availabilityBlocks,availableTimeSlots: Query_availableTimeSlots,callingById: Query_callingById,callings: Query_callings,currentGame: Query_currentGame,myTriviaScore: Query_myTriviaScore,permissions: Query_permissions,self: Query_self,users: Query_users },
+      Mutation: { addCallingsToPermission: Mutation_addCallingsToPermission,assignCallingsToUser: Mutation_assignCallingsToUser,changeMyTriviaPlayerName: Mutation_changeMyTriviaPlayerName,closeTriviaGame: Mutation_closeTriviaGame,createAppointment: Mutation_createAppointment,createCalling: Mutation_createCalling,createPermission: Mutation_createPermission,createTriviaGame: Mutation_createTriviaGame,deletePermission: Mutation_deletePermission,login: Mutation_login,logout: Mutation_logout,nextTriviaQuestion: Mutation_nextTriviaQuestion,pauseTriviaGame: Mutation_pauseTriviaGame,removeCallingsFromPermission: Mutation_removeCallingsFromPermission,removeCallingsFromUser: Mutation_removeCallingsFromUser,requestPasswordReset: Mutation_requestPasswordReset,resendEmailVerification: Mutation_resendEmailVerification,resetPassword: Mutation_resetPassword,resumeTriviaGame: Mutation_resumeTriviaGame,showScoreAfterQuestion: Mutation_showScoreAfterQuestion,showScoreImmediately: Mutation_showScoreImmediately,signUp: Mutation_signUp,startTriviaGame: Mutation_startTriviaGame,stopTriviaGame: Mutation_stopTriviaGame,submitTriviaAnswer: Mutation_submitTriviaAnswer,updateCallingName: Mutation_updateCallingName,verifyEmail: Mutation_verifyEmail },
       Subscription: { joinTriviaGameAsAdmin: Subscription_joinTriviaGameAsAdmin,joinTriviaGameAsBoard: Subscription_joinTriviaGameAsBoard,joinTriviaGameAsPlayer: Subscription_joinTriviaGameAsPlayer },
       AppointmentError: AppointmentError,
 AppointmentPayload: AppointmentPayload,
@@ -94,7 +105,13 @@ AppointmentType: AppointmentType,
 AvailabilityBlock: AvailabilityBlock,
 Calling: Calling,
 CallingConnection: CallingConnection,
+CallingCreateError: CallingCreateError,
 CallingEdge: CallingEdge,
+CallingPayload: CallingPayload,
+CallingUpdateError: CallingUpdateError,
+CallingsAssignmentError: CallingsAssignmentError,
+CallingsAssignmentPayload: CallingsAssignmentPayload,
+CreateCallingPayload: CreateCallingPayload,
 LoginError: LoginError,
 LoginPayload: LoginPayload,
 LogoutPayload: LogoutPayload,

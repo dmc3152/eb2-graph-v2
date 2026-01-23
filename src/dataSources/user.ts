@@ -35,7 +35,8 @@ export class UserDataSource {
             ($isEmailVerified = NULL OR is_email_verified = $isEmailVerified) AND
             ($isSiteAdmin = NULL OR is_site_admin = $isSiteAdmin) AND
             ($hasCalling = NULL OR ($hasCalling = TRUE AND array::any(callings)) OR ($hasCalling = FALSE AND array::len(callings) = 0)) AND
-            ($callingIsOneOf = NULL OR array::any(callings[WHERE $callingIsOneOf CONTAINS id]))
+            ($callingIsOneOf = NULL OR array::any(callings[WHERE $callingIsOneOf CONTAINS id])) AND
+            ($callingIsNotOneOf = NULL OR !array::any(callings[WHERE $callingIsNotOneOf CONTAINS id]))
         `;
 
         const query = `
@@ -68,7 +69,8 @@ export class UserDataSource {
             isEmailVerified: input?.filters?.isEmailVerified ?? null,
             isSiteAdmin: input?.filters?.isSiteAdmin ?? null,
             hasCalling: input?.filters?.hasCalling ?? null,
-            callingIsOneOf: input?.filters?.callingIsOneOf ? input.filters.callingIsOneOf.map(record => new StringRecordId(record)) : null
+            callingIsOneOf: input?.filters?.callingIsOneOf ? input.filters.callingIsOneOf.map(record => new StringRecordId(record)) : null,
+            callingIsNotOneOf: input?.filters?.callingIsNotOneOf ? input.filters.callingIsNotOneOf.map(record => new StringRecordId(record)) : null,
         };
         const [userDtos, _, pageInfoDto] = await this.surreal.query<[UserDto[], undefined, PageInfoDto]>({ query, params });
         return [userDtos.map(userDto => this._mapUserDtoToUser(userDto)), pageInfoDto];
@@ -97,5 +99,25 @@ export class UserDataSource {
         const params = { callingId: new StringRecordId(callingId) };
         const [userDtos] = await this.surreal.query<[UserDto[]]>({ query, params });
         return userDtos.map(userDto => this._mapUserDtoToUser(userDto));
+    }
+
+    async assignCallingsToUser(userId: string, callingIds: string[]): Promise<UserMapper> {
+        const query = `
+            UPDATE $userId
+            SET callings = array::union(callings, $callingIds);
+        `;
+        const params = { userId: new StringRecordId(userId), callingIds: callingIds.map(id => new StringRecordId(id)) };
+        const [userDto] = await this.surreal.query<[UserDto]>({ query, params });
+        return this._mapUserDtoToUser(userDto);
+    }
+
+    async removeCallingsFromUser(userId: string, callingIds: string[]): Promise<UserMapper> {
+        const query = `
+            UPDATE $userId
+            SET callings = array::subtract(callings, $callingIds);
+        `;
+        const params = { userId: new StringRecordId(userId), callingIds: callingIds.map(id => new StringRecordId(id)) };
+        const [userDto] = await this.surreal.query<[UserDto]>({ query, params });
+        return this._mapUserDtoToUser(userDto);
     }
 }

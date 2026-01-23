@@ -53,11 +53,32 @@ export class CallingDataSource {
 
     async getCallingById(id: string): Promise<CallingMapper | null> {
         const query = `
-            SELECT * FROM calling WHERE id = $id;
+            SELECT * FROM ONLY $id;
         `;
         const params = { id: new StringRecordId(id) };
         const [callingDto] = await this.surreal.query<[CallingDto]>({ query, params });
         return callingDto ? this._mapCallingDtoToCalling(callingDto) : null;
+    }
+
+    async createCalling(name: string): Promise<CallingMapper> {
+        const normalizedName = name.trim();
+        const normalizedId = normalizedName.toLowerCase().replace(/\s+/g, '_');
+        const id = new StringRecordId(`calling:${normalizedId}`);
+        const query = `
+            CREATE calling
+            SET id = $id, name = $name;
+        `;
+        const [callingDto] = await this.surreal.query<[CallingDto]>({ query, params: { id, name } });
+        return this._mapCallingDtoToCalling(callingDto);
+    }
+
+    async updateCallingName(id: string, name: string): Promise<CallingMapper> {
+        const query = `
+            UPDATE $id
+            SET name = $name;
+        `;
+        const [callingDto] = await this.surreal.query<[CallingDto]>({ query, params: { id, name } });
+        return this._mapCallingDtoToCalling(callingDto);
     }
 
     // async getCallingsForUser(userId: string): Promise<CallingMapper[]> {

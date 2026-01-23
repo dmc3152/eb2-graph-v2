@@ -1,5 +1,11 @@
 extend type Query {
+  callingById(id: ID!): Calling
   callings(input: CallingSearch): CallingConnection
+}
+
+extend type Mutation {
+  createCalling(input: CreateCallingInput!): CreateCallingPayload!
+  updateCallingName(id: ID!, name: String!): CallingPayload!
 }
 
 type Calling {
@@ -26,4 +32,46 @@ type CallingConnection {
 
 type CallingEdge {
   node: Calling!
+}
+
+input CreateCallingInput {
+  name: String!
+  assignedTo: [ID!]
+  permissions: [ID!]
+}
+
+type CreateCallingPayload {
+  calling: Calling
+  success: Boolean!
+  error: [CallingCreateError!]
+}
+
+type CallingCreateError implements GenericError {
+  code: CallingCreateErrorCodes!
+  message: String!
+}
+
+enum CallingCreateErrorCodes {
+  NAME_ALREADY_EXISTS
+  INSUFFICIENT_PERMISSIONS
+  USER_ASSIGNMENT_FAILED
+  PERMISSION_ASSIGNMENT_FAILED
+  UNKNOWN_ERROR
+}
+
+type CallingPayload {
+  calling: Calling
+  success: Boolean!
+  error: CallingUpdateError
+}
+
+type CallingUpdateError implements GenericError {
+  code: CallingUpdateErrorCodes!
+  message: String!
+}
+
+enum CallingUpdateErrorCodes {
+  NAME_ALREADY_EXISTS
+  INSUFFICIENT_PERMISSIONS
+  UNKNOWN_ERROR
 }
